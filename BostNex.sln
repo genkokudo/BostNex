@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BostNex", "BostNex\BostNex.csproj", "{599123EB-F0CE-478D-8742-CD987F9BCD9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BostNex", "BostNex\BostNex.csproj", "{599123EB-F0CE-478D-8742-CD987F9BCD9E}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BostNexShared", "BostNexShared\BostNexShared.shproj", "{C00FF9B5-6049-4C29-A436-E2A41F348C72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,5 +23,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FB8C255B-ADB7-4739-9203-57D06D4036FB}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		BostNexShared\BostNexShared.projitems*{599123eb-f0ce-478d-8742-cd987f9bcd9e}*SharedItemsImports = 5
+		BostNexShared\BostNexShared.projitems*{c00ff9b5-6049-4c29-a436-e2a41f348c72}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
