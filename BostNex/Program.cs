@@ -23,7 +23,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
-builder.Services.BuildServiceProvider().GetService<ApplicationDbContext>()!.Database.Migrate();
+//builder.Services.BuildServiceProvider().GetService<ApplicationDbContext>()!.Database.Migrate();
 
 var app = builder.Build();
 
