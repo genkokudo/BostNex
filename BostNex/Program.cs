@@ -24,6 +24,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 builder.Services.AddSingleton<WeatherForecastService>();
 
 //builder.Services.BuildServiceProvider().GetService<ApplicationDbContext>()!.Database.Migrate();
+WeatherForecastService.Test = connectionString;
 
 var app = builder.Build();
 
