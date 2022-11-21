@@ -11,19 +11,16 @@ using Microsoft.Extensions.Logging.AzureAppServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.ConfigureLogging(logging => logging.AddAzureWebAppDiagnostics())
-    .ConfigureServices(serviceCollection => serviceCollection
-        .Configure<AzureFileLoggerOptions>(options =>
-        {
-            options.FileName = "diagnostics-";
-            options.FileSizeLimit = 50 * 1024;
-            options.RetainedFileCountLimit = 5;
-        }));
-
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlServerOptionsAction: sqlOptions => {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    })
+    );
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -34,11 +31,6 @@ builder.Services.AddSingleton<WeatherForecastService>();
 
 
 var app = builder.Build();
-
-// ÉçÉO
-var logger = app.Services.GetRequiredService<ILoggerFactory>()
-    .CreateLogger<Program>();
-logger.LogDebug("!!!! Server !!!!");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
