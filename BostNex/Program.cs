@@ -23,9 +23,6 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 
-//builder.Services.BuildServiceProvider().GetService<ApplicationDbContext>()!.Database.Migrate();
-WeatherForecastService.Test = connectionString;
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
