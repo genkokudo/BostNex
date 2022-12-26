@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.AzureAppServices;
 
@@ -39,7 +40,36 @@ else
 
 app.UseHttpsRedirection();
 
+//app.UseStaticFiles();
+// ここから追加
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".data"] = "application/octet-stream";
+provider.Mappings[".wasm"] = "application/wasm";
+provider.Mappings[".br"] = "application/octet-stream";   // .br ファイルにアクセスできるように追加
+provider.Mappings[".js"] = "application/javascript";     // 後の変換の為に追加
+
+app.UseStaticFiles(new StaticFileOptions()
+{
+    ContentTypeProvider = provider,
+    OnPrepareResponse = context =>
+    {
+        var path = context.Context.Request.Path.Value;
+        var extension = Path.GetExtension(path);
+
+        // 「.gz」「.br」ファイルにアクセスした場合は Content-Type と Content-Encoding を設定する
+        if (extension == ".gz" || extension == ".br")
+        {
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(path) ?? "";
+            if (provider.TryGetContentType(fileNameWithoutExtension, out string? contentType))
+            {
+                context.Context.Response.ContentType = contentType;
+                context.Context.Response.Headers.Add("Content-Encoding", extension == ".gz" ? "gzip" : "br");
+            }
+        }
+    },
+});
 app.UseStaticFiles();
+// ここまで追加
 
 app.UseRouting();
 

@@ -1,0 +1,22 @@
+﻿@page "/games"
+
+<PageTitle>My Revolution</PageTitle>
+
+<!-- ページごとにHeadタグを加えたい場合はHeadContentを使用する -->
+<HeadContent>
+    <!-- これでページごとにアイコンが変わる -->
+    <link rel="shortcut icon" href="Escape/TemplateData/favicon.ico">
+    <!--
+        アプリごとのcss（でもアプリごとにする必要ないよね）
+        TemplateData内の各画像はstyle.cssで使ってる
+    -->
+    <link rel="stylesheet" href="Escape/TemplateData/style.css">
+</HeadContent>
+
+<h1>ゲーム展示室</h1>
+
+<button class="btn btn-primary" onclick="window.open('./Escape/index.html')">脱出ゲーム</button>
+
+@code {
+    
+}

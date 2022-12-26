@@ -1,0 +1,47 @@
+﻿@page "/botsu"
+@using BlizzardHaunt.Unity;
+@inject IJSRuntime JsRuntime;
+
+<PageTitle>Escape</PageTitle>
+
+<!-- ページごとにHeadタグを加えたい場合はHeadContentを使用する -->
+<HeadContent>
+    <!-- これでページごとにアイコンが変わる -->
+    <link rel="shortcut icon" href="Escape/TemplateData/favicon.ico">
+    <!--
+        アプリごとのcss（でもアプリごとにする必要ないよね）
+        TemplateData内の各画像はstyle.cssで使ってる
+    -->
+    <link rel="stylesheet" href="Escape/TemplateData/style.css">
+</HeadContent>
+<div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width=800 height=600></canvas>
+    <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+            <div id="unity-progress-bar-full"></div>
+        </div>
+    </div>
+    <div id="unity-warning"> </div>
+    <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">My Revolution</div>
+    </div>
+    <div id="unity-test"> </div>
+</div>
+
+@code {
+    // ページ表示時に実行する
+    protected override async Task OnInitializedAsync()
+    {
+        var config = new PlayerConfig("Escape", "My Revolution");
+        
+        var module = await JsRuntime.InvokeAsync<IJSObjectReference>(
+            "import", "./unity-interop.js"
+        );
+        //await module.InvokeVoidAsync("deleteScripts");
+        await module.InvokeVoidAsync("init", config);
+    }
+    
+}
