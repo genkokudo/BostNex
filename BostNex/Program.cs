@@ -1,5 +1,6 @@
 using BostNex.Areas.Identity;
 using BostNex.Data;
+using BostNex.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -23,7 +24,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
-
+builder.Services.AddTransient<IAesService, AesService>();   // AESà√çÜ
+builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
