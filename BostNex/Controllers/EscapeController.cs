@@ -9,6 +9,7 @@ using BostNex.Data;
 using BostNexShared.Entity;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Xml.Linq;
+using Microsoft.AspNetCore.Cors;
 
 namespace BostNex.Controllers
 {
@@ -32,6 +33,7 @@ namespace BostNex.Controllers
         /// パラメータあり:現在の値に1を加えて取得、パラメータは使用しないが"name"を付けること。
         /// </summary>
         /// <returns>今までの脱出者数</returns>
+        [EnableCors]
         [HttpGet]
         public async Task<ActionResult<string>> Get()
         {
