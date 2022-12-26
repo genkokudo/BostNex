@@ -35,7 +35,6 @@ namespace BostNex.Controllers
         /// </summary>
         /// <returns>今までの脱出者数</returns>
         [HttpGet]
-        [EnableCors("Policy1")]
         public async Task<ActionResult<string>> Get()
         {
             // まずDBからデータを準備
