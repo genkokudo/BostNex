@@ -38,6 +38,12 @@ namespace BostNex.Controllers
             // まずDBからデータを準備
             var data = await GetEscapeDataAsync();
             
+            // カウントアップしてDBを更新する
+            var dbDataInt = int.Parse(data.Value!);
+            dbDataInt++;
+            data.Value = dbDataInt.ToString();
+            await _context.SaveChangesAsync();
+            
             return data!.Value!;
         }
 
@@ -60,21 +66,21 @@ namespace BostNex.Controllers
             return dbData;
         }
 
-        // GET: api/Generals/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<string>> GetGeneral(string id)
-        {
-            // まずDBからデータを準備
-            var data = await GetEscapeDataAsync();
+        //// GET: api/Escape/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<string>> GetGeneral(string id)
+        //{
+        //    // まずDBからデータを準備
+        //    var data = await GetEscapeDataAsync();
 
-            // カウントアップしてDBを更新する
-            var dbDataInt = int.Parse(data.Value!);
-            dbDataInt++;
-            data.Value = dbDataInt.ToString();
-            await _context.SaveChangesAsync();
-            
-            return data!.Value!;
-        }
+        //    // カウントアップしてDBを更新する
+        //    var dbDataInt = int.Parse(data.Value!);
+        //    dbDataInt++;
+        //    data.Value = dbDataInt.ToString();
+        //    await _context.SaveChangesAsync();
+
+        //    return data!.Value!;
+        //}
 
 
         //// POST: api/Generals
