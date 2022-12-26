@@ -2,14 +2,12 @@
 @using BostNex.Data
 @using BostNex.Services
 @inject WeatherForecastService ForecastService
-@inject IAesService AesService
 
 <PageTitle>Weather forecast</PageTitle>
 
 <h1>Weather forecast</h1>
 
 <p>This component demonstrates fetching data from a service.</p>
-<p>@aaaa</p>
 
 @if (forecasts == null)
 {
@@ -42,12 +40,10 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
-    private string aaaa = "";
 
     protected override async Task OnInitializedAsync()
     {
         forecasts = await ForecastService.GetForecastAsync(DateOnly.FromDateTime(DateTime.Now));
-        aaaa = AesService.Test();
 
     }
 }

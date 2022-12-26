@@ -11,6 +11,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authorization;
+using BostNex.Services;
 
 namespace BostNex.Controllers
 {
@@ -20,10 +21,12 @@ namespace BostNex.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly string _parameterName = "Escapers";
+        private readonly IAesService _aes;
 
-        public EscapeController(ApplicationDbContext context)
+        public EscapeController(ApplicationDbContext context, IAesService aes)
         {
             _context = context;
+            _aes = aes;
         }
 
         // GET: api/Escape
@@ -31,7 +34,6 @@ namespace BostNex.Controllers
         /// 今まで脱出した人数を返す
         /// データが無ければ作成する
         /// パラメータなし:現在の値を取得
-        /// パラメータあり:現在の値に1を加えて取得、パラメータは使用しないが"name"を付けること。
         /// </summary>
         /// <returns>今までの脱出者数</returns>
         [HttpGet]
@@ -40,13 +42,38 @@ namespace BostNex.Controllers
             // まずDBからデータを準備
             var data = await GetEscapeDataAsync();
             
+            //// カウントアップしてDBを更新する
+            //var dbDataInt = int.Parse(data.Value!);
+            //dbDataInt++;
+            //data.Value = dbDataInt.ToString();
+            //await _context.SaveChangesAsync();
+            
+            return data!.Value!;
+        }
+
+        // POST: api/Generals
+        [HttpPost]
+        public async Task<ActionResult<string>> PostGeneral(General general)    // TODO:復号して、合言葉が合っているか確認。合言葉はDBに入れておく。
+        {
+            // まずDBからデータを準備
+            var data = await GetEscapeDataAsync();
+
             // カウントアップしてDBを更新する
             var dbDataInt = int.Parse(data.Value!);
             dbDataInt++;
             data.Value = dbDataInt.ToString();
             await _context.SaveChangesAsync();
-            
+
             return data!.Value!;
+
+            //if (_context.Generals == null)
+            //{
+            //    return Problem("Entity set 'ApplicationDbContext.Generals'  is null.");
+            //}
+            //_context.Generals.Add(general);
+            //await _context.SaveChangesAsync();
+
+            //return CreatedAtAction("GetGeneral", new { id = general.Id }, general);
         }
 
         /// <summary>
@@ -85,19 +112,6 @@ namespace BostNex.Controllers
         //}
 
 
-        //// POST: api/Generals
-        //[HttpPost]
-        //public async Task<ActionResult<General>> PostGeneral(General general)
-        //{
-        //  if (_context.Generals == null)
-        //  {
-        //      return Problem("Entity set 'ApplicationDbContext.Generals'  is null.");
-        //  }
-        //    _context.Generals.Add(general);
-        //    await _context.SaveChangesAsync();
-
-        //    return CreatedAtAction("GetGeneral", new { id = general.Id }, general);
-        //}
 
     }
 }
