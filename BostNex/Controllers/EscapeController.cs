@@ -12,6 +12,8 @@ using System.Xml.Linq;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Authorization;
 using BostNex.Services;
+using NuGet.Common;
+using System.Globalization;
 
 namespace BostNex.Controllers
 {
@@ -41,39 +43,50 @@ namespace BostNex.Controllers
         {
             // まずDBからデータを準備
             var data = await GetEscapeDataAsync();
-            
+
             //// カウントアップしてDBを更新する
             //var dbDataInt = int.Parse(data.Value!);
             //dbDataInt++;
             //data.Value = dbDataInt.ToString();
             //await _context.SaveChangesAsync();
-            
+
             return data!.Value!;
         }
 
-        // POST: api/Generals
+        // POST: api/Escape
         [HttpPost]
-        public async Task<ActionResult<string>> PostGeneral(General general)    // TODO:復号して、合言葉が合っているか確認。合言葉はDBに入れておく。
+        public async Task<ActionResult<string>> Post(Rootobject value)    // TODO:復号して、合言葉が合っているか確認。
         {
-            // まずDBからデータを準備
-            var data = await GetEscapeDataAsync();
+            // 復号して時刻形式だったらOK
+            var date = _aes.Decrypt(value.Date);
+            if (IsDate(date))
+            {
+                // まずDBからデータを準備
+                var data = await GetEscapeDataAsync();
 
-            // カウントアップしてDBを更新する
-            var dbDataInt = int.Parse(data.Value!);
-            dbDataInt++;
-            data.Value = dbDataInt.ToString();
-            await _context.SaveChangesAsync();
+                // カウントアップしてDBを更新する
+                var dbDataInt = int.Parse(data.Value!);
+                dbDataInt++;
+                data.Value = dbDataInt.ToString();
+                await _context.SaveChangesAsync();
 
-            return data!.Value!;
+                return data!.Value!;
+            }
+            return "";
+        }
 
-            //if (_context.Generals == null)
-            //{
-            //    return Problem("Entity set 'ApplicationDbContext.Generals'  is null.");
-            //}
-            //_context.Generals.Add(general);
-            //await _context.SaveChangesAsync();
+        public class Rootobject
+        {
+            public string Date { get; set; } = "";
+        }
 
-            //return CreatedAtAction("GetGeneral", new { id = general.Id }, general);
+        private bool IsDate(string dt)
+        {
+            string fmt = "yyyy/MM/dd HH:mm:ss";
+            DateTimeStyles dts = DateTimeStyles.None;
+            DateTime outValue;
+
+            return DateTime.TryParseExact(dt, fmt, null, dts, out outValue);
         }
 
         /// <summary>

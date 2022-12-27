@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
@@ -34,96 +35,80 @@ namespace BostNex.Services
         {
             _options = options.Value;
         }
+
         public string Test()
         {
-            using (Aes myRijndael = Aes.Create())
-            {
-                // ブロックサイズ（何文字単位で処理するか）
-                myRijndael.BlockSize = 128;
-                // 暗号化方式はAES-256を採用
-                myRijndael.KeySize = 256;
-                // 暗号利用モード
-                myRijndael.Mode = CipherMode.CBC;
-                // パディング
-                myRijndael.Padding = PaddingMode.PKCS7;
+            using var myRijndael = Aes.Create();
+            // ブロックサイズ（何文字単位で処理するか）
+            myRijndael.BlockSize = 128;
+            // 暗号化方式はAES-256を採用
+            myRijndael.KeySize = 256;
+            // 暗号利用モード
+            myRijndael.Mode = CipherMode.CBC;
+            // パディング
+            myRijndael.Padding = PaddingMode.PKCS7;
 
-                myRijndael.GenerateIV();
-                myRijndael.GenerateKey();
+            myRijndael.GenerateIV();
+            myRijndael.GenerateKey();
 
-                string IV = Convert.ToBase64String(myRijndael.IV);
-                string Key = Convert.ToBase64String(myRijndael.Key);
+            string IV = Convert.ToBase64String(myRijndael.IV);
+            string Key = Convert.ToBase64String(myRijndael.Key);
 
-                return $"{IV} {Key}";
-            }
+            return $"{IV} {Key}";
         }
 
         public string Encrypt(string text)
         {
-            using (Aes myRijndael = Aes.Create())
+            using var rijndael = Aes.Create();
+            // ブロックサイズ（何文字単位で処理するか）
+            rijndael.BlockSize = 128;
+            // 暗号化方式はAES-256を採用
+            rijndael.KeySize = 256;
+            // 暗号利用モード
+            rijndael.Mode = CipherMode.CBC;
+            // パディング
+            rijndael.Padding = PaddingMode.PKCS7;
+
+            rijndael.IV = Convert.FromBase64String(_options.Iv);
+            rijndael.Key = Convert.FromBase64String(_options.Key);
+
+            var encryptor = rijndael.CreateEncryptor();
+
+            byte[] encrypted;
+            using (var mStream = new MemoryStream())
             {
-                // ブロックサイズ（何文字単位で処理するか）
-                myRijndael.BlockSize = 128;
-                // 暗号化方式はAES-256を採用
-                myRijndael.KeySize = 256;
-                // 暗号利用モード
-                myRijndael.Mode = CipherMode.CBC;
-                // パディング
-                myRijndael.Padding = PaddingMode.PKCS7;
-
-                myRijndael.IV = Convert.FromBase64String(_options.Iv);
-                myRijndael.Key = Convert.FromBase64String(_options.Key);
-
-                // 暗号化
-                ICryptoTransform encryptor = myRijndael.CreateEncryptor(myRijndael.Key, myRijndael.IV);
-
-                byte[] encrypted;
-                using (MemoryStream mStream = new MemoryStream())
+                using var ctStream = new CryptoStream(mStream, encryptor, CryptoStreamMode.Write);
+                using (var sw = new StreamWriter(ctStream))
                 {
-                    using (CryptoStream ctStream = new CryptoStream(mStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter sw = new StreamWriter(ctStream))
-                        {
-                            sw.Write(text);
-                        }
-                        encrypted = mStream.ToArray();
-                    }
+                    sw.Write(text);
                 }
-                // Base64形式（64種類の英数字で表現）で返す
-                return (Convert.ToBase64String(encrypted));
+                encrypted = mStream.ToArray();
             }
+            var encryptedString = Convert.ToBase64String(encrypted);
+            return encryptedString;
         }
 
         public string Decrypt(string cipher)
         {
-            using (Aes rijndael = Aes.Create())
+            using var rijndael = Aes.Create();
+            rijndael.BlockSize = 128;
+            rijndael.KeySize = 256;
+            rijndael.Mode = CipherMode.CBC;
+            rijndael.Padding = PaddingMode.PKCS7;
+
+            rijndael.IV = Convert.FromBase64String(_options.Iv);
+            rijndael.Key = Convert.FromBase64String(_options.Key);
+
+            var decryptor = rijndael.CreateDecryptor();
+
+            string plain = string.Empty;
+            using (var mStream = new MemoryStream(Convert.FromBase64String(cipher)))
             {
-                // ブロックサイズ（何文字単位で処理するか）
-                rijndael.BlockSize = 128;
-                // 暗号化方式はAES-256を採用
-                rijndael.KeySize = 256;
-                // 暗号利用モード
-                rijndael.Mode = CipherMode.CBC;
-                // パディング
-                rijndael.Padding = PaddingMode.PKCS7;
-
-                rijndael.IV = Convert.FromBase64String(_options.Iv);
-                rijndael.Key = Convert.FromBase64String(_options.Key);
-
-                ICryptoTransform decryptor = rijndael.CreateDecryptor(rijndael.Key, rijndael.IV);
-
-                string plain = string.Empty;
-                using (MemoryStream mStream = new MemoryStream(Convert.FromBase64String(cipher)))
-                {
-                    using (CryptoStream ctStream = new CryptoStream(mStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader sr = new StreamReader(ctStream))
-                        {
-                            plain = sr.ReadLine()!;
-                        }
-                    }
-                }
-                return plain;
+                using var ctStream = new CryptoStream(mStream, decryptor, CryptoStreamMode.Read);
+                using var sr = new StreamReader(ctStream);
+                plain = sr.ReadLine()!;
             }
+            return plain;
         }
 
 
