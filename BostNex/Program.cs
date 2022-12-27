@@ -45,6 +45,7 @@ app.UseHttpsRedirection();
 //app.UseStaticFiles();
 // ここから追加
 var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".dat"] = "text/plain";
 provider.Mappings[".data"] = "application/octet-stream";
 provider.Mappings[".wasm"] = "application/wasm";
 provider.Mappings[".br"] = "application/octet-stream";   // .br ファイルにアクセスできるように追加
