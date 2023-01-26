@@ -19,19 +19,19 @@ namespace BostNex.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class EscapeController : ControllerBase
+    public class LightController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly string _parameterName = "Escapers";
+        private readonly string _parameterName = "Lighters";
         private readonly IAesService _aes;
 
-        public EscapeController(ApplicationDbContext context, IAesService aes)
+        public LightController(ApplicationDbContext context, IAesService aes)
         {
             _context = context;
             _aes = aes;
         }
 
-        // GET: api/Escape
+        // GET: api/Light
         /// <summary>
         /// 今まで脱出した人数を返す
         /// データが無ければ作成する
@@ -42,12 +42,12 @@ namespace BostNex.Controllers
         public async Task<ActionResult<string>> Get()
         {
             // まずDBからデータを準備
-            var data = await GetEscapeDataAsync();
+            var data = await GetLightDataAsync();
 
             return data!.Value!;
         }
 
-        // POST: api/Escape
+        // POST: api/Light
         [HttpPost]
         public async Task<ActionResult<string>> Post(Rootobject value)
         {
@@ -56,7 +56,7 @@ namespace BostNex.Controllers
             if (IsDate(date))
             {
                 // まずDBからデータを準備
-                var data = await GetEscapeDataAsync();
+                var data = await GetLightDataAsync();
 
                 // カウントアップしてDBを更新する
                 var dbDataInt = int.Parse(data.Value!);
@@ -88,7 +88,7 @@ namespace BostNex.Controllers
         /// 無ければ作成して返す
         /// </summary>
         /// <returns></returns>
-        private async Task<General> GetEscapeDataAsync()
+        private async Task<General> GetLightDataAsync()
         {
             // まずDBからデータを準備
             var dbData = _context.Generals.FirstOrDefault(x => x.Name == _parameterName);
@@ -102,12 +102,12 @@ namespace BostNex.Controllers
             return dbData;
         }
 
-        //// GET: api/Escape/5
+        //// GET: api/Light/5
         //[HttpGet("{id}")]
         //public async Task<ActionResult<string>> GetGeneral(string id)
         //{
         //    // まずDBからデータを準備
-        //    var data = await GetEscapeDataAsync();
+        //    var data = await GetLightDataAsync();
 
         //    // カウントアップしてDBを更新する
         //    var dbDataInt = int.Parse(data.Value!);
