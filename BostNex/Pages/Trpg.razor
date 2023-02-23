@@ -1,0 +1,82 @@
+﻿@page "/trpg"
+@using BostNex.Data
+@using BostNex.Services
+@using BostNex.Pages.Component
+@inject OpenAiService _openAi
+
+<PageTitle>TRPG</PageTitle>
+
+<h1>TRPG</h1>
+<p>AIがTRPGのセッションをやってくれるようです。</p>
+
+@if (backlogs == null)
+{
+    <p><em>Loading...</em></p>
+    return;
+}
+
+@foreach (var log in backlogs)
+{
+    //  物語の進行ごとに、繰り返して表示する
+    <TrpgSessionPanel AiResponse="@log.AiResponse" @bind-InputText="@log.Text" />
+    <br />
+}
+<button class="btn btn-primary" @onclick="SubmitSessionAsync">送信</button>
+
+@code {
+    /// <summary>
+    /// 今までのセッション
+    /// </summary>
+    private List<TrpgSession> backlogs = null!;
+
+    /// <summary>
+    /// 初期化
+    /// </summary>
+    override protected async Task OnInitializedAsync()
+    {
+        backlogs = new List<TrpgSession>();
+
+        // これをセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
+        // プロンプトをどこに置くかによるかなあ。
+        // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
+
+        // 最初のお題を受け取る
+        backlogs.Add(
+            new TrpgSession
+                {
+                    Text = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
+                    AiResponse = await _openAi.GetNextSessionAsync("こんにちは")
+                }
+        );
+    }
+
+    /// <summary>
+    /// 入力したテキストを送信して
+    /// セッションを進める
+    /// （backlogの一番最後を送る）
+    /// </summary>
+    /// <returns></returns>
+    private async Task SubmitSessionAsync()
+    {
+        var lastLog = backlogs.Last();
+        backlogs.Add(
+            new TrpgSession
+                {
+                    AiResponse = await _openAi.GetNextSessionAsync(lastLog.Text)
+                }
+        );
+    }
+
+    /// <summary>
+    /// AIとのTRPGセッション
+    /// </summary>
+    public class TrpgSession
+    {
+        //public string Prompt { get; set; } = string.Empty;    // いらないかな
+        
+        // この辺はまだ決まっていない。いくつテキスト表示するとか。
+        public string Text { get; set; } = string.Empty;
+        public string AiResponse { get; set; } = string.Empty;
+    }
+}
+

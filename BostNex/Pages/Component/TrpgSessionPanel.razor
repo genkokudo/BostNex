@@ -1,0 +1,32 @@
+﻿@* TRPGのやり取り1回分を表すコンポーネント *@
+
+@if (string.IsNullOrWhiteSpace(AiResponse))
+{
+    <p><em>Loading...</em></p>
+    return;
+}
+
+@* AIから問われる *@
+<p><em>@AiResponse</em></p>
+
+@* 問いに対する回答を入力する *@
+<InputText @bind-Value="InputText" @onfocusout="_ => UpdateInputText(InputText)" />
+
+@code {
+    /// <summary>
+    /// 入力されたテキスト
+    /// </summary>
+    [Parameter]
+    public string InputText { get; set; } = string.Empty;
+    
+    [Parameter]
+    public EventCallback<string> InputTextChanged { get; set; }
+
+    [Parameter]
+    public string AiResponse { get; set; } = null!;
+
+    private async void UpdateInputText(string inputText)
+    {
+        await InputTextChanged.InvokeAsync(inputText);
+    }
+}
