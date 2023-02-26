@@ -9,6 +9,7 @@
     <Import_RootNamespace>BostNexShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Dto\TrpgSession.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entity\General.cs" />
   </ItemGroup>
   <ItemGroup>

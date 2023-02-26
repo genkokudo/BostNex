@@ -2,6 +2,7 @@
 @using BostNex.Data
 @using BostNex.Services
 @using BostNex.Pages.Component
+@using BostNexShared.Dto;
 @inject OpenAiService _openAi
 
 <PageTitle>TRPG</PageTitle>
@@ -22,11 +23,9 @@
 @foreach (var log in backlogs)
 {
     //  物語の進行ごとに、繰り返して表示する
-    @*<TrpgSessionPanel AiResponse="@log.AiResponse" @bind-InputText="@log.Text" />*@
-    <TrpgSessionPanel />
+    <TrpgSessionPanel Session="log"/>
     <br />
 }
-@*<button class="btn btn-primary" @onclick="SubmitSessionAsync">送信</button>*@
 
 @code {
     /// <summary>
@@ -53,7 +52,7 @@
     /// （backlogの一番最後を送る）
     /// </summary>
     /// <returns></returns>
-    private async Task SubmitSessionAsync()
+    private async Task SubmitSessionAsync() // TODO:子コンポーネントでAIの返信が終わったことをここに伝えたい。これをコールバックとして子に送るべきかなあ？
     {
         //// test
         //var api = _openAi.Api;
@@ -84,16 +83,6 @@
         //            AiResponse = await _openAi.GetNextSessionAsync(lastLog.Text)
         //        }
         //);
-    }
-
-    /// <summary>
-    /// AIとのTRPGセッション
-    /// </summary>
-    public class TrpgSession
-    {
-        // この辺はまだ決まっていない。いくつテキスト表示するとか。
-        public string Text { get; set; } = string.Empty;
-        public string AiResponse { get; set; } = string.Empty;
     }
 }
 

@@ -25,9 +25,10 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<IAesService, AesService>();   // AES暗号
+builder.Services.AddTransient<ITrpgService, TrpgService>();
 builder.Services.AddScoped<OpenAiService>();                // Scopedとすることでリロードしたらセッション切れるようにする
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
-builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
+builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));//TrpgService
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -38,7 +38,7 @@ namespace BostNex.Services
         }
         
         // TODO:セッションをリセットしたい。
-        // TODO:長文が返ってきた時に途中で切れる。
+        // TODO:長文が返ってきた時に途中で切れる。最後の1文字を送ると続きが貰えるらしい。
         public async Task<string> GetNextSessionAsync(string action)
         {
             // リクエスト
