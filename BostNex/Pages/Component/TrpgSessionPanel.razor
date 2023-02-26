@@ -2,7 +2,6 @@
 @* 
     データの大本は親が持ってないと何かと不便。
     データの元を子コンポーネントに持たせることはできるけど、後で親で集計する時などに親からのアクセス方法が分からないのでやめておく。
-    （コールバックメソッドをParameterにするとかぐらいかなあ）
 *@
 @using BostNex.Services
 @using BostNexShared.Dto;
@@ -16,9 +15,20 @@
 }
 
 @* 問いに対する回答を入力する *@
-<InputText @oninput="OnInput" @bind-Value="@Session.Text" />@* bind-Valueはフォーカスを解いたときにしか反映されないので使わないが、必須 *@
-<br />
-<button class="btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton" hidden="@_isSubmitted">送信</button>
+<div class="row">
+    @if (_isSubmitted)
+    {
+        <p class="text-primary">@Session.Text</p>
+    }
+    else
+    {
+        @* bind-Valueはフォーカスを解いたときにしか反映されないので注意 *@
+        <InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="あなたの行動を入力してください。" rows="@rows" />
+        <div class="d-md-flex justify-content-md-end">
+            <button class="col-md-4 mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">送信</button>
+        </div>
+    }
+</div>
 
 @* AIからの返事 *@
 <p hidden="@(!_isSubmitted)"><em>@Session.AiResponse</em></p>
@@ -54,12 +64,19 @@
     private bool IsDisableButton => string.IsNullOrWhiteSpace(_inputText) || _isSubmitted;
 
     /// <summary>
+    /// 入力行数
+    /// </summary>
+    private int rows = 3;
+
+    /// <summary>
     /// 入力ごとに実行
     /// 入力テキストが空白か判定してボタン活性状態を変える。
     /// </summary>
     private void OnInput(ChangeEventArgs e)
     {
         _inputText = e.Value!.ToString()!;
+        rows = Math.Max(3, _inputText.Length - _inputText.Replace("\n", "").Length + 1);
+
     }
 
     /// <summary>

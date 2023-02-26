@@ -16,9 +16,9 @@ namespace BostNex.Services
         /// ユーザの入力を受け取って、セッションを進める
         /// AIからの返事はストリーミングされるため、全て受け取ってから返す
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        public Task<string> GetNextSessionAsync(string input);
+        public Task<string> GetNextSessionAsync(CompletionRequest request);
 
         /// <summary>
         /// API
@@ -42,21 +42,10 @@ namespace BostNex.Services
             _options = options.Value;
             Api = new OpenAIAPI(_options.ApiKey);
         }
-        
-        // TODO:セッションをリセットしたい。
-        // TODO:長文が返ってきた時に途中で切れる。最後の1文字を送ると続きが貰えるらしい。
-        public async Task<string> GetNextSessionAsync(string action)
-        {
-            // リクエスト
-            var request = new CompletionRequest(
-                action,
-                OpenAI_API.Models.Model.DavinciText,
-                200,
-                0.5,
-                presencePenalty: 0.1,
-                frequencyPenalty: 0.1
-            );
 
+        // 今の所使ってない
+        public async Task<string> GetNextSessionAsync(CompletionRequest request)
+        {
             // ストリーミング
             var sb = new StringBuilder();
             await foreach (var token in Api.Completions.StreamCompletionEnumerableAsync(request))

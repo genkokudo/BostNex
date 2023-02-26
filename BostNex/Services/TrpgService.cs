@@ -4,10 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
-using OpenAI_API;
 using OpenAI_API.Completions;
-using System.Diagnostics;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace BostNex.Services
@@ -23,6 +20,8 @@ namespace BostNex.Services
         /// <param name="input"></param>
         /// <returns></returns>
         public CompletionRequest GetTrpgRequest(string input);
+
+        // TODO:プロンプトを作成していくこと。
     }
 
     public class TrpgService : ITrpgService
@@ -32,7 +31,7 @@ namespace BostNex.Services
             return new OpenAI_API.Completions.CompletionRequest(
                 input,
                 OpenAI_API.Models.Model.DavinciText,
-                200,
+                200,    // 289文字ぐらい出してくれた。ここの文字数でお金がかかるので、早めにプロンプトで字数制限を付けるべき。
                 0.5,
                 presencePenalty: 0.1,
                 frequencyPenalty: 0.1
