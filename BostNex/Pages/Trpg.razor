@@ -3,7 +3,7 @@
 @using BostNex.Services
 @using BostNex.Pages.Component
 @using BostNexShared.Dto;
-@inject OpenAiService _openAi
+@inject IOpenAiService _openAi
 
 <PageTitle>TRPG</PageTitle>
 
@@ -23,7 +23,7 @@
 @foreach (var log in backlogs)
 {
     //  物語の進行ごとに、繰り返して表示する
-    <TrpgSessionPanel Session="log"/>
+    <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" />
     <br />
 }
 
@@ -40,49 +40,22 @@
     {
         backlogs = new List<TrpgSession>();
         backlogs.Add(new TrpgSession());
-        
+
         // GPTの初期化はセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
         // プロンプトをどこに置くかによるかなあ。
         // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
     }
 
     /// <summary>
-    /// 入力したテキストを送信して
-    /// セッションを進める
-    /// （backlogの一番最後を送る）
+    /// 子コンポーネントでAIメッセージを受信し終わった時の処理
+    /// 終了判定
+    /// 次のセッションを作成
     /// </summary>
-    /// <returns></returns>
-    private async Task SubmitSessionAsync() // TODO:子コンポーネントでAIの返信が終わったことをここに伝えたい。これをコールバックとして子に送るべきかなあ？
+    private void NextSession()
     {
-        //// test
-        //var api = _openAi.Api;
-        //// リクエスト
-        //var lastLog = backlogs.Last();
-        //var request = new OpenAI_API.Completions.CompletionRequest(
-        //    lastLog.Text,
-        //    OpenAI_API.Models.Model.DavinciText,
-        //    200,
-        //    0.5,
-        //    presencePenalty: 0.1,
-        //    frequencyPenalty: 0.1
-        //);
-        //var newSession = new TrpgSession();
-        //backlogs.Add(newSession);
-        //await foreach (var token in api.Completions.StreamCompletionEnumerableAsync(request))
-        //{
-        //    newSession.AiResponse = token.ToString();
-        //    StateHasChanged();      // TODO:多分重いので、コンポーネント内でStateHasChangedする
-        //}
-
-
-        //
-        //var lastLog = backlogs.Last();
-        //backlogs.Add(
-        //    new TrpgSession
-        //        {
-        //            AiResponse = await _openAi.GetNextSessionAsync(lastLog.Text)
-        //        }
-        //);
+        backlogs.Add(new TrpgSession());
+        StateHasChanged();
     }
+
 }
 

@@ -19,6 +19,12 @@ namespace BostNex.Services
         /// <param name="input"></param>
         /// <returns></returns>
         public Task<string> GetNextSessionAsync(string input);
+
+        /// <summary>
+        /// API
+        /// クライアント側でも使えるようpublicにしておく
+        /// </summary>
+        public OpenAIAPI Api { get; }
     }
 
     public class OpenAiService : IOpenAiService
