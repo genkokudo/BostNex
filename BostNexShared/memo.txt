@@ -1,4 +1,16 @@
 ﻿Github Actionsが動かなくなるため、他のソリューションと共有しているわけではない。
 他でも使う可能性のあるコードをここに溜めておくが、他ソリューションからのプロジェクト参照という形では使用しない。
 
-test
+■appsettings.Development.jsonは無視リストに入ってるのでチェックアウトしたら自分で作ること。
+{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "OpenAiSettings": {
+    "ApiKey": "あなたのAPIキー"
+  }
+}
