@@ -15,13 +15,18 @@
     return;
 }
 
+@* 最初のお題 *@
+<p><em>ここはよくある普通の剣と魔法のファンタジーRPGの世界。<br />物語はここから始まる。</em></p>
+
+@* セッションの表示 *@
 @foreach (var log in backlogs)
 {
     //  物語の進行ごとに、繰り返して表示する
-    <TrpgSessionPanel AiResponse="@log.AiResponse" @bind-InputText="@log.Text" />
+    @*<TrpgSessionPanel AiResponse="@log.AiResponse" @bind-InputText="@log.Text" />*@
+    <TrpgSessionPanel />
     <br />
 }
-<button class="btn btn-primary" @onclick="SubmitSessionAsync">送信</button>
+@*<button class="btn btn-primary" @onclick="SubmitSessionAsync">送信</button>*@
 
 @code {
     /// <summary>
@@ -35,19 +40,11 @@
     override protected async Task OnInitializedAsync()
     {
         backlogs = new List<TrpgSession>();
-
-        // これをセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
+        backlogs.Add(new TrpgSession());
+        
+        // GPTの初期化はセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
         // プロンプトをどこに置くかによるかなあ。
         // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
-
-        // 最初のお題を受け取る
-        backlogs.Add(
-            new TrpgSession
-                {
-                    Text = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
-                    AiResponse = await _openAi.GetNextSessionAsync("こんにちは")
-                }
-        );
     }
 
     /// <summary>
@@ -58,13 +55,35 @@
     /// <returns></returns>
     private async Task SubmitSessionAsync()
     {
-        var lastLog = backlogs.Last();
-        backlogs.Add(
-            new TrpgSession
-                {
-                    AiResponse = await _openAi.GetNextSessionAsync(lastLog.Text)
-                }
-        );
+        //// test
+        //var api = _openAi.Api;
+        //// リクエスト
+        //var lastLog = backlogs.Last();
+        //var request = new OpenAI_API.Completions.CompletionRequest(
+        //    lastLog.Text,
+        //    OpenAI_API.Models.Model.DavinciText,
+        //    200,
+        //    0.5,
+        //    presencePenalty: 0.1,
+        //    frequencyPenalty: 0.1
+        //);
+        //var newSession = new TrpgSession();
+        //backlogs.Add(newSession);
+        //await foreach (var token in api.Completions.StreamCompletionEnumerableAsync(request))
+        //{
+        //    newSession.AiResponse = token.ToString();
+        //    StateHasChanged();      // TODO:多分重いので、コンポーネント内でStateHasChangedする
+        //}
+
+
+        //
+        //var lastLog = backlogs.Last();
+        //backlogs.Add(
+        //    new TrpgSession
+        //        {
+        //            AiResponse = await _openAi.GetNextSessionAsync(lastLog.Text)
+        //        }
+        //);
     }
 
     /// <summary>
@@ -72,8 +91,6 @@
     /// </summary>
     public class TrpgSession
     {
-        //public string Prompt { get; set; } = string.Empty;    // いらないかな
-        
         // この辺はまだ決まっていない。いくつテキスト表示するとか。
         public string Text { get; set; } = string.Empty;
         public string AiResponse { get; set; } = string.Empty;

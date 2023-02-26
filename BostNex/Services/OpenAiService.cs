@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using OpenAI_API;
+using OpenAI_API.Completions;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,6 +14,7 @@ namespace BostNex.Services
     {
         /// <summary>
         /// ユーザの入力を受け取って、セッションを進める
+        /// AIからの返事はストリーミングされるため、全て受け取ってから返す
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -21,20 +23,42 @@ namespace BostNex.Services
 
     public class OpenAiService : IOpenAiService
     {
+        /// <summary>
+        /// API
+        /// クライアント側でも使えるようpublicにしておく
+        /// </summary>
+        public OpenAIAPI Api { get; private set; }
+
         private readonly OpenAiOption _options;
-        private OpenAIAPI _openAiApi;
 
         public OpenAiService(IOptions<OpenAiOption> options)
         {
             _options = options.Value;
-            _openAiApi = new OpenAIAPI(_options.ApiKey);
+            Api = new OpenAIAPI(_options.ApiKey);
         }
-
+        
+        // TODO:セッションをリセットしたい。
+        // TODO:長文が返ってきた時に途中で切れる。
         public async Task<string> GetNextSessionAsync(string action)
         {
-            // なんか冒頭部分しか表示されない。多分徐々に返ってくるので、最後まで返ってきたところで反映させるべき。
-            var result = await _openAiApi.Completions.GetCompletion(action);
-            return result;
+            // リクエスト
+            var request = new CompletionRequest(
+                action,
+                OpenAI_API.Models.Model.DavinciText,
+                200,
+                0.5,
+                presencePenalty: 0.1,
+                frequencyPenalty: 0.1
+            );
+
+            // ストリーミング
+            var sb = new StringBuilder();
+            await foreach (var token in Api.Completions.StreamCompletionEnumerableAsync(request))
+            {
+                sb.Append(token.ToString());
+            }
+            
+            return sb.ToString();
         }
 
     }

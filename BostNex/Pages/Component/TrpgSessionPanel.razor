@@ -1,32 +1,94 @@
 ﻿@* TRPGのやり取り1回分を表すコンポーネント *@
-
-@if (string.IsNullOrWhiteSpace(AiResponse))
-{
-    <p><em>Loading...</em></p>
-    return;
-}
-
-@* AIから問われる *@
-<p><em>@AiResponse</em></p>
+@* 
+    データの大本は親が持ってないとダメっぽい。
+    子コンポーネントに持たせることはできるけど、親からのアクセス方法が分からない。
+*@
+@using BostNex.Services
+@inject OpenAiService _openAi
 
 @* 問いに対する回答を入力する *@
-<InputText @bind-Value="InputText" @onfocusout="_ => UpdateInputText(InputText)" />
+<InputText @oninput="OnInput" @bind-Value="@_inputText" />@* bind-Valueはフォーカスを解いたときにしか反映されないので使わないが、必須 *@
+<br />
+<button class="btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton" hidden="@_isSubmitted">送信</button>
+
+@* AIからの返事 *@
+<p hidden="@(!_isSubmitted)"><em>@AiResponse</em></p>
 
 @code {
     /// <summary>
-    /// 入力されたテキスト
+    /// 入力されたテキスト（即時反映）
     /// </summary>
-    [Parameter]
+    private string _inputText = string.Empty;
+
+    /// <summary>
+    /// 入力されたテキスト（フォーカスが離れた時に反映）
+    /// </summary>
     public string InputText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// AIからの返信
+    /// </summary>
+    public string AiResponse { get; set; } = string.Empty;
     
-    [Parameter]
-    public EventCallback<string> InputTextChanged { get; set; }
+    /// <summary>
+    /// 送信ボタンを押したらtrue
+    /// 以降はこのセッションに書き込めなくする。
+    /// </summary>
+    private bool _isSubmitted = false;
 
-    [Parameter]
-    public string AiResponse { get; set; } = null!;
+    /// <summary>
+    /// ボタン無効
+    /// テキスト未入力ならばボタンを非活性にする。
+    /// </summary>
+    private bool IsDisableButton => string.IsNullOrWhiteSpace(_inputText) || _isSubmitted;
 
-    private async void UpdateInputText(string inputText)
+    /// <summary>
+    /// 入力ごとに実行
+    /// 入力テキストが空白か判定してボタン活性状態を変える。
+    /// </summary>
+    private void OnInput(ChangeEventArgs e)
     {
-        await InputTextChanged.InvokeAsync(inputText);
+        _inputText = e.Value!.ToString()!;
+    }
+
+    //[Parameter]
+    //public EventCallback<string> InputTextChanged { get; set; }
+    ///// <summary>
+    ///// InputTextを親のバインド元に反映する
+    ///// </summary>
+    ///// <param name="inputText"></param>
+    //private async void UpdateInputText(string inputText)
+    //{
+    //    await InputTextChanged.InvokeAsync(inputText);
+    //}
+
+    /// <summary>
+    /// 入力したテキストを送信する
+    /// TODO:セッションを進める。
+    /// </summary>
+    /// <returns></returns>
+    private async Task SubmitSessionAsync()
+    {
+        _isSubmitted = true;
+        var api = _openAi.Api;
+
+        // リクエスト作成
+        // TODO:パラメータは後で考え、別のソースに置く
+        var request = new OpenAI_API.Completions.CompletionRequest(
+            _inputText,
+            OpenAI_API.Models.Model.DavinciText,
+            200,
+            0.5,
+            presencePenalty: 0.1,
+            frequencyPenalty: 0.1
+        );
+
+        // 送信
+        await foreach (var token in api.Completions.StreamCompletionEnumerableAsync(request))
+        {
+            AiResponse += token.ToString();
+            StateHasChanged();
+        }
+
     }
 }
