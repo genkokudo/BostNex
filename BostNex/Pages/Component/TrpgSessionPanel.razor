@@ -86,17 +86,10 @@
     private async Task SubmitSessionAsync()
     {
         _isSubmitted = true;
-        var api = _openAi.Api;
-
-        // リクエスト作成＆送信
-        var request = _trpg.GetTrpgRequest(_inputText);
-        await foreach (var token in api.Completions.StreamCompletionEnumerableAsync(request))
-        {
-            Session.AiResponse += token.ToString();
-            StateHasChanged();  // 徐々にテキストが表示されるようにここで逐次更新する
-        }
+        var response =  await _openAi.GetNextSessionAsync(_inputText);
 
         // 終わったらバインド元に反映する
+        Session.AiResponse = response;
         await SessionChanged.InvokeAsync(Session);
 
         // セッションを進めることを親に伝える。

@@ -35,8 +35,9 @@
     /// <summary>
     /// 初期化
     /// </summary>
-    override protected async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
+        base.OnInitialized();
         backlogs = new List<TrpgSession>();
         backlogs.Add(new TrpgSession());
 
@@ -44,6 +45,16 @@
         // プロンプトをどこに置くかによるかなあ。
         // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
     }
+
+    //override protected async Task OnInitialized()
+    //{
+    //    backlogs = new List<TrpgSession>();
+    //    backlogs.Add(new TrpgSession());
+
+    //    // GPTの初期化はセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
+    //    // プロンプトをどこに置くかによるかなあ。
+    //    // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
+    //}
 
     /// <summary>
     /// 子コンポーネントでAIメッセージを受信し終わった時の処理
