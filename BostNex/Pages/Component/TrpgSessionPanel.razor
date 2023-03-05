@@ -23,7 +23,8 @@
     else
     {
         @* bind-Valueはフォーカスを解いたときにしか反映されないので注意 *@
-        <InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="あなたの行動を入力してください。" rows="@rows" />
+        @*<InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="あなたの行動を入力してください。" rows="@rows" />*@
+        <InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="喋ってみよう！" rows="@rows" />
         <div class="d-md-flex justify-content-md-end">
             <button class="col-md-4 mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">送信</button>
         </div>

@@ -4,11 +4,9 @@
 @using BostNex.Pages.Component
 @using BostNexShared.Dto;
 @inject IOpenAiService _openAi
+@inject ITrpgService _trpg
 
 <PageTitle>TRPG</PageTitle>
-
-<h1>TRPG</h1>
-<p>AIがTRPGのセッションをやってくれるようです。</p>
 
 @if (backlogs == null)
 {
@@ -16,8 +14,12 @@
     return;
 }
 
+<h1>ツン子とお話しよう！</h1>
+@*<h1>TRPG</h1>
+<p>AIがTRPGのセッションをやってくれるようです。</p>*@
+
 @* 最初のお題 *@
-<p><em>ここはよくある普通の剣と魔法のファンタジーRPGの世界。<br />物語はここから始まる。</em></p>
+@*<p><em>ここはよくある普通の剣と魔法のファンタジーRPGの世界。<br />物語はここから始まる。</em></p>*@
 
 @* セッションの表示 *@
 @foreach (var log in backlogs)
@@ -38,23 +40,14 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        
+        // 人格をセット
+        _openAi.InitializeChat(_trpg.Tsunko);
+
+        // 入力欄を作成
         backlogs = new List<TrpgSession>();
         backlogs.Add(new TrpgSession());
-
-        // GPTの初期化はセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
-        // プロンプトをどこに置くかによるかなあ。
-        // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
     }
-
-    //override protected async Task OnInitialized()
-    //{
-    //    backlogs = new List<TrpgSession>();
-    //    backlogs.Add(new TrpgSession());
-
-    //    // GPTの初期化はセッション開始用のメソッドでやるか、GetNextSessionAsyncでやるか。
-    //    // プロンプトをどこに置くかによるかなあ。
-    //    // なので、取り敢えずプロンプトをここに書いておいてGetNextSessionAsyncする。
-    //}
 
     /// <summary>
     /// 子コンポーネントでAIメッセージを受信し終わった時の処理
