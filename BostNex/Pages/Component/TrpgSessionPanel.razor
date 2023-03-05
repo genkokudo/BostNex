@@ -24,9 +24,9 @@
     {
         @* bind-Valueはフォーカスを解いたときにしか反映されないので注意 *@
         @*<InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="あなたの行動を入力してください。" rows="@rows" />*@
-        <InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="喋ってみよう！" rows="@rows" />
+        <InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="@Placeholder" rows="@rows" />
         <div class="d-md-flex justify-content-md-end">
-            <button class="col-md-4 mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">送信</button>
+            <button class="col-md-4 mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">@SubmitText</button>
         </div>
     }
 </div>
@@ -35,11 +35,18 @@
 <p hidden="@(!_isSubmitted)"><em>@Session.AiResponse</em></p>
 
 @code {
+    //@bind-Session
     [Parameter]
     public TrpgSession Session { get; set; } = null!;
     [Parameter]
     public EventCallback<TrpgSession> SessionChanged { get; set; }
-
+    
+    // 表示設定
+    [Parameter]
+    public string Placeholder { get; set; } = "喋ってみよう！";
+    [Parameter]
+    public string SubmitText { get; set; } = "送信";
+    
     /// <summary>
     /// AIからの返信が終わった時の処理を指定する
     /// </summary>

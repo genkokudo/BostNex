@@ -26,6 +26,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<IAesService, AesService>();   // AES暗号
 builder.Services.AddTransient<ITrpgService, TrpgService>();
+builder.Services.AddTransient<ITrpgFormatService, TrpgFormatService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();                // Scopedとすることでリロードしたらセッション切れるようにする
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));//TrpgService

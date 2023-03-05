@@ -1,34 +1,43 @@
 ﻿@page "/trpg"
+@page "/trpg/{pagedata}"
 @using BostNex.Data
 @using BostNex.Services
 @using BostNex.Pages.Component
 @using BostNexShared.Dto;
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
+@inject ITrpgFormatService _format;
 
-<PageTitle>TRPG</PageTitle>
+<PageTitle>@(_display?.Title ?? "Loading")</PageTitle>
 
-@if (backlogs == null)
+@if (!isLoaded)
 {
     <p><em>Loading...</em></p>
     return;
 }
+else if (_display == null)
+{
+    <p><em>Not Found</em></p>
+    return;
+}
 
-<h1>ツン子とお話しよう！</h1>
-@*<h1>TRPG</h1>
-<p>AIがTRPGのセッションをやってくれるようです。</p>*@
-
-@* 最初のお題 *@
-@*<p><em>ここはよくある普通の剣と魔法のファンタジーRPGの世界。<br />物語はここから始まる。</em></p>*@
+<h1>@_display.Headline</h1>
+<p><em>@_display.Introduction</em></p>
 
 @* セッションの表示 *@
 @foreach (var log in backlogs)
 {
     //  物語の進行ごとに、繰り返して表示する
-    <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" />
+    <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" />
 }
 
 @code {
+    [Parameter]
+    public string? Pagedata { get; set; }
+
+    private Display? _display;
+    private bool isLoaded = false;
+
     /// <summary>
     /// 今までのセッション
     /// </summary>
@@ -40,13 +49,22 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
-        // 人格をセット
-        _openAi.InitializeChat(_trpg.Tsunko);
 
-        // 入力欄を作成
-        backlogs = new List<TrpgSession>();
-        backlogs.Add(new TrpgSession());
+        if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
+        {
+            // 人格をセット
+            _openAi.InitializeChat(_display.Prompt);
+
+            // 入力欄を作成
+            backlogs = new List<TrpgSession>();
+            backlogs.Add(new TrpgSession());
+        }
+        else
+        {
+            _display = null;
+        }
+        isLoaded = true;
+
     }
 
     /// <summary>
