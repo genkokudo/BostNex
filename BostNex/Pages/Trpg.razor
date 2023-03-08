@@ -17,7 +17,7 @@
 }
 else if (_display == null)
 {
-    <p><em>Not Found</em></p>
+    <h1>どこにアクセスしとんねん😡</h1>
     return;
 }
 
@@ -41,22 +41,30 @@ else if (_display == null)
     /// <summary>
     /// 今までのセッション
     /// </summary>
-    private List<TrpgSession> backlogs = null!;
+    private List<TrpgSession> backlogs = new();
 
     /// <summary>
     /// 初期化
     /// </summary>
     protected override void OnInitialized()
     {
+        _display = null;
+        isLoaded = false;
+        backlogs.Clear();
         base.OnInitialized();
+    }
 
+    protected override void OnParametersSet()
+    {
+        // パラメータ違いの同じ画面に遷移した場合は、OnInitializedが実行されず、ここが実行される。
+        // TODO:TrpgSessionPanelが初期化されず、_isSubmittedとかが残ってしまう。でもOnParametersSetでリセットすると今度は返答が表示されない。
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
             // 人格をセット
             _openAi.InitializeChat(_display.Prompt);
 
             // 入力欄を作成
-            backlogs = new List<TrpgSession>();
+            backlogs.Clear();
             backlogs.Add(new TrpgSession());
         }
         else
@@ -64,7 +72,7 @@ else if (_display == null)
             _display = null;
         }
         isLoaded = true;
-
+        base.OnParametersSet();
     }
 
     /// <summary>

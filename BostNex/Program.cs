@@ -29,7 +29,8 @@ builder.Services.AddTransient<ITrpgService, TrpgService>();
 builder.Services.AddTransient<ITrpgFormatService, TrpgFormatService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();                // Scopedとすることでリロードしたらセッション切れるようにする
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
-builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));//TrpgService
+builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
+builder.Services.Configure<TrpgOption>(builder.Configuration.GetSection("TrpgSettings"));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
