@@ -20,5 +20,12 @@ namespace BostNexShared.Dto
         /// Textに対する回答
         /// </summary>
         public string AiResponse { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 送信ボタンを押したらtrue
+        /// （遷移した時の画面のリフレッシュに必要）
+        /// 以降はこのセッションに書き込めなくする。
+        /// </summary>
+        public bool IsSubmitted = false;
     }
 }

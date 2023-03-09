@@ -56,8 +56,7 @@ else if (_display == null)
 
     protected override void OnParametersSet()
     {
-        // パラメータ違いの同じ画面に遷移した場合は、OnInitializedが実行されず、ここが実行される。
-        // TODO:TrpgSessionPanelが初期化されず、_isSubmittedとかが残ってしまう。でもOnParametersSetでリセットすると今度は返答が表示されない。
+        // パラメータ違いの同じ画面に遷移した場合は、OnInitializedが実行されず、ここが実行されるので注意。
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
             // 人格をセット
@@ -69,6 +68,7 @@ else if (_display == null)
         }
         else
         {
+            // 指定されたデータが見つからなかった時
             _display = null;
         }
         isLoaded = true;

@@ -16,14 +16,13 @@
 
 @* 問いに対する回答を入力する *@
 <div class="row">
-    @if (_isSubmitted)
+    @if (Session.IsSubmitted)
     {
         <p class="text-primary">@Session.Text</p>
     }
     else
     {
         @* bind-Valueはフォーカスを解いたときにしか反映されないので注意 *@
-        @*<InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="あなたの行動を入力してください。" rows="@rows" />*@
         <InputTextArea class="col-md-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="@Placeholder" rows="@rows" />
         <div class="d-md-flex justify-content-md-end">
             <button class="col-md-4 mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">@SubmitText</button>
@@ -32,11 +31,12 @@
 </div>
 
 @* AIからの返事 *@
-<p hidden="@(!_isSubmitted)"><em>@Session.AiResponse</em></p>
+<p hidden="@(!Session.IsSubmitted)"><em>@Session.AiResponse</em></p>
 
 @code {
     //@bind-Session
     [Parameter]
+    [EditorRequired]
     public TrpgSession Session { get; set; } = null!;
     [Parameter]
     public EventCallback<TrpgSession> SessionChanged { get; set; }
@@ -60,16 +60,10 @@
     private string _inputText = string.Empty;
 
     /// <summary>
-    /// 送信ボタンを押したらtrue
-    /// 以降はこのセッションに書き込めなくする。
-    /// </summary>
-    private bool _isSubmitted = false;
-
-    /// <summary>
     /// ボタン無効
     /// テキスト未入力ならばボタンを非活性にする。
     /// </summary>
-    private bool IsDisableButton => string.IsNullOrWhiteSpace(_inputText) || _isSubmitted;
+    private bool IsDisableButton => string.IsNullOrWhiteSpace(_inputText) || Session.IsSubmitted;
 
     /// <summary>
     /// 入力行数
@@ -84,7 +78,6 @@
     {
         _inputText = e.Value!.ToString()!;
         rows = Math.Max(3, _inputText.Length - _inputText.Replace("\n", "").Length + 1);
-
     }
 
     /// <summary>
@@ -93,7 +86,7 @@
     /// <returns></returns>
     private async Task SubmitSessionAsync()
     {
-        _isSubmitted = true;
+        Session.IsSubmitted = true;
         var response =  await _openAi.GetNextSessionAsync(_inputText);
 
         // 終わったらバインド元に反映する
