@@ -43,19 +43,14 @@ else if (_display == null)
     /// </summary>
     private List<TrpgSession> backlogs = new();
 
-    /// <summary>
-    /// 初期化
-    /// </summary>
-    protected override void OnInitialized()
-    {
-        _display = null;
-        isLoaded = false;
-        backlogs.Clear();
-        base.OnInitialized();
-    }
-
     protected override void OnParametersSet()
     {
+        // 初期化
+        isLoaded = false;
+        _display = null;
+        backlogs.Clear();
+        base.OnParametersSet();
+
         // パラメータ違いの同じ画面に遷移した場合は、OnInitializedが実行されず、ここが実行されるので注意。
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
@@ -63,7 +58,6 @@ else if (_display == null)
             _openAi.InitializeChat(_display.Prompt);
 
             // 入力欄を作成
-            backlogs.Clear();
             backlogs.Add(new TrpgSession());
         }
         else
