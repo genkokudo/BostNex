@@ -134,12 +134,11 @@ namespace BostNex.Services
         /// </summary>
         public void ApplyOption()
         {
-            if (Options.Count == 0 || MasterPrompt.Count == 0) return;
             CurrentPrompt.Clear();
             CurrentPrompt.AddRange(MasterPrompt);
 
             var values = Options.Select(x => x.Value ?? string.Empty).ToArray();
-            var content = MasterPrompt[0].Content.FormatWith(values);
+            var content = CurrentPrompt[0].Content.FormatWith(values);
             CurrentPrompt[0] = new ChatPrompt(MasterPrompt[0].Role, content);
         }
     }
