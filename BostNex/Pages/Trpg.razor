@@ -20,15 +20,28 @@ else if (_display == null)
     <h1>どこにアクセスしとんねん😡</h1>
     return;
 }
-@* TODO:_display.Optionがある場合は、入力完了してから開始すること *@
-@*
-    Optionsをコンポーネントに渡す。
-    コンポーネントは、Optionsを元に、入力フォームを作成する。
-    決定ボタンを1つ付ける。
-    決定ボタンを押すと、入力フォームの内容をサーバーに送信する（InitializeChatを呼ぶ）。
-*@
-@if (_display.Options.Count > 0)
+
+@if (_display.Options.Count > 0 && !isSubmittedOptions)
 {
+    // _display.Optionがある場合は、入力完了してから開始する
+    // TODO:Optionsを元に、入力フォームを作成する。
+    <h2>始める前に設定項目を入力するんだ</h2>
+    foreach (var option in _display.Options)
+    {
+        <div class="row">
+            <div class="col-12">
+                <h3>@option.Subject</h3>
+                <InputText @bind-Value="option.Value"></InputText>
+            </div>
+        </div>
+    }
+    // 決定ボタンを押すと、入力フォームの内容をサーバーに送信する（InitializeChatを呼ぶ）。
+    <div class="row">
+        <div class="col-4">
+            <button class="mt-3 btn btn-primary" @onclick="SubmitOption">決定</button>
+        </div>
+    </div>
+    // TODO:OnParametersSet()との辻褄を考えていないので、後でチェックすること   ///////////////////////////////////////////////
     return;
 }
 
@@ -56,6 +69,7 @@ else if (_display == null)
 
     private Display? _display;
     private bool isLoaded = false;
+    private bool isSubmittedOptions = false;
 
     /// <summary>
     /// 今までのセッション
@@ -74,7 +88,7 @@ else if (_display == null)
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
             // 人格をセット
-            _openAi.InitializeChat(_display.MasterPrompt);  // TODO:画面情報を渡すように変更
+            _openAi.InitializeChat(_display);
 
             // 入力欄を作成
             backlogs.Add(new TrpgSession());
@@ -86,6 +100,16 @@ else if (_display == null)
         }
         isLoaded = true;
         base.OnParametersSet();
+    }
+
+    /// <summary>
+    /// 設定項目の入力完了
+    /// </summary>
+    private void SubmitOption()
+    {
+        isSubmittedOptions = true;
+        _openAi.InitializeChat(_display!);
+        StateHasChanged();
     }
 
     /// <summary>

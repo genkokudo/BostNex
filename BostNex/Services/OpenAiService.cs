@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
+using NuGet.Packaging;
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Completions;
@@ -19,10 +20,11 @@ namespace BostNex.Services
         /// プロンプトがあれば再設定する、無ければそのまま
         /// </summary>
         /// <param name="prompt">プロンプト</param>
-        public void InitializeChat(List<ChatPrompt> prompts = null!);
+        public void InitializeChat(Display prompts = null!);
 
         /// <summary>
         /// 主に開発用
+        /// 現在のプロンプトに上書きする
         /// <end>で区切ってプロンプトを入力する
         /// 最初はsystem、その後はuserとassistantの入力扱いとなる
         /// </summary>
@@ -53,11 +55,16 @@ namespace BostNex.Services
         public List<ChatPrompt> ChatLog => GetAllChat();
 
         // 毎回、_chatPromptsと既定回数の_chatLogsを合わせてAPIに送る
+        ///// <summary>
+        ///// 現在のチャットプロンプト
+        ///// セッション毎に、このプロンプトでAPIに送るチャットログを再作成する
+        ///// </summary>
+        //private List<ChatPrompt> _chatPrompts = new();
+
         /// <summary>
-        /// 現在のチャットプロンプト
-        /// セッション毎に、このプロンプトでAPIに送るチャットログを再作成する
+        /// 現在の画面データ
         /// </summary>
-        private List<ChatPrompt> _chatPrompts = new();
+        private Display currentDisplay = null!;
         /// <summary>
         /// 今までのチャットログ、プロンプトは含まない
         /// カットしていない全ての生データをここに保持する
@@ -71,13 +78,13 @@ namespace BostNex.Services
             InitializeChat();
         }
         
-        public void InitializeChat(List<ChatPrompt> prompts = null!)        // TODO:画面情報を受け取るように変更すること
+        public void InitializeChat(Display display = null!)
         {
-            // TODO:
             // プロンプト再設定、無かったらそのまま
-            if (prompts != null)
+            if (display != null)
             {
-                _chatPrompts = prompts;
+                display.ApplyOption();
+                currentDisplay = display;
             }
             _chatLogs.Clear();
         }
@@ -100,7 +107,7 @@ namespace BostNex.Services
         private List<ChatPrompt> GetAllChat()
         {
             var result = new List<ChatPrompt>();
-            result.AddRange(_chatPrompts);
+            result.AddRange(currentDisplay.CurrentPrompt);
             result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount)));   //_chatLogsの件数を新しい方から指定件数取る
             return result;
         }
@@ -116,7 +123,8 @@ namespace BostNex.Services
                 role = result.Count == 0 ? ChatRoles.system : role;
                 result.Add(new ChatPrompt(role.ToString(), item));
             }
-            InitializeChat(result);
+            currentDisplay.CurrentPrompt = result;
+            InitializeChat(currentDisplay);
         }
     }
 
