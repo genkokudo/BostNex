@@ -22,6 +22,14 @@ namespace BostNex.Services
         public void InitializeChat(List<ChatPrompt> prompts = null!);
 
         /// <summary>
+        /// 主に開発用
+        /// <end>で区切ってプロンプトを入力する
+        /// 最初はsystem、その後はuserとassistantの入力扱いとなる
+        /// </summary>
+        /// <param name="prompts"></param>
+        public void InitializeChat(string prompts);
+
+        /// <summary>
         /// ユーザの入力を受け取って、セッションを進める
         /// </summary>
         /// <param name="request"></param>
@@ -29,28 +37,27 @@ namespace BostNex.Services
         public Task<string> GetNextSessionAsync(string input);
 
         /// <summary>
-        /// API
-        /// クライアント側でも使えるようpublicにしておく
+        /// 今までのチャットログを取得する
         /// </summary>
-        public OpenAIClient Api { get; }
+        public List<ChatPrompt> ChatLog { get; }
     }
 
     public class OpenAiService : IOpenAiService
     {
-        /// <summary>
-        /// API
-        /// クライアント側でも使えるようpublicにしておく
-        /// </summary>
-        public OpenAIClient Api { get; private set; }
-
+        private readonly OpenAIClient _api;
         private readonly OpenAiOption _options;
 
         /// <summary>
-        /// チャットプロンプト
-        /// リセット時にこのプロンプトで設定する
+        /// プロンプト含む全チャットログ
+        /// </summary>
+        public List<ChatPrompt> ChatLog => GetAllChat();
+
+        // 毎回、_chatPromptsと既定回数の_chatLogsを合わせてAPIに送る
+        /// <summary>
+        /// 現在のチャットプロンプト
+        /// セッション毎に、このプロンプトでAPIに送るチャットログを再作成する
         /// </summary>
         private List<ChatPrompt> _chatPrompts = new();
-
         /// <summary>
         /// 今までのチャットログ、プロンプトは含まない
         /// カットしていない全ての生データをここに保持する
@@ -60,12 +67,13 @@ namespace BostNex.Services
         public OpenAiService(IOptions<OpenAiOption> options)
         {
             _options = options.Value;
-            Api = new OpenAIClient(new OpenAIAuthentication(_options.ApiKey));
+            _api = new OpenAIClient(new OpenAIAuthentication(_options.ApiKey));
             InitializeChat();
         }
         
-        public void InitializeChat(List<ChatPrompt> prompts = null!)
+        public void InitializeChat(List<ChatPrompt> prompts = null!)        // TODO:画面情報を受け取るように変更すること
         {
+            // TODO:
             // プロンプト再設定、無かったらそのまま
             if (prompts != null)
             {
@@ -78,7 +86,7 @@ namespace BostNex.Services
         {
             _chatLogs.Add(new ChatPrompt(ChatRoles.user.ToString(), input));
             var chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
-            var result = await Api.ChatEndpoint.GetCompletionAsync(chatRequest);
+            var result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
             _chatLogs.Add(new ChatPrompt(ChatRoles.assistant.ToString(), result.FirstChoice));
 
             return result.FirstChoice;
@@ -97,6 +105,19 @@ namespace BostNex.Services
             return result;
         }
 
+        // 開発用
+        public void InitializeChat(string prompts)
+        {
+            var result = new List<ChatPrompt>();
+            var splited = prompts.Replace("\n", "\r\n").Split(_options.Separate);
+            foreach (var item in splited)
+            {
+                var role = result.Count % 2 == 0 ? ChatRoles.assistant : ChatRoles.user;
+                role = result.Count == 0 ? ChatRoles.system : role;
+                result.Add(new ChatPrompt(role.ToString(), item));
+            }
+            InitializeChat(result);
+        }
     }
 
     /// <summary>
@@ -119,6 +140,12 @@ namespace BostNex.Services
         /// 返答のトークン上限を設定してトークン数を節約する。
         /// </summary>
         public int MaxTokens { get; set; } = 180;
+
+        /// <summary>
+        /// 開発用
+        /// プロンプトの区切りを示す文字列
+        /// </summary>
+        public string Separate { get; set; } = "<end>";
     }
 
     /// <summary>

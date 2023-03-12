@@ -1,0 +1,24 @@
+﻿@* 文字入力欄と送信ボタンだけのコンポーネントが欲しい *@
+
+<div class="row">
+    <InputTextArea class="col-md-12" @bind-Value="Text" rows="25" />
+    <button class="col-md-10 btn-danger" @onclick="OnButtonClicked">リセット</button>
+</div>
+
+@code {
+    [Parameter]
+    [EditorRequired]
+    public EventCallback<string> OnClickCallback { get; set; }
+
+    [Parameter]
+    public string? Text { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> TextChanged { get; set; }
+    
+    private async Task OnButtonClicked()
+    {
+        var r = new Random();
+        await OnClickCallback.InvokeAsync(Text);
+    }
+}

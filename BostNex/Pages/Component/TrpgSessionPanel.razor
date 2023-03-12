@@ -18,7 +18,7 @@
 <div class="row">
     @if (Session.IsSubmitted)
     {
-        <p class="text-primary">@Session.Text</p>
+        <p class="text-primary">@((MarkupString)Session.Text.Replace("\r\n", "<br />").Replace("\n", "<br />"))</p>
     }
     else
     {

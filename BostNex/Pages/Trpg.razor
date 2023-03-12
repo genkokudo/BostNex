@@ -20,6 +20,17 @@ else if (_display == null)
     <h1>どこにアクセスしとんねん😡</h1>
     return;
 }
+@* TODO:_display.Optionがある場合は、入力完了してから開始すること *@
+@*
+    Optionsをコンポーネントに渡す。
+    コンポーネントは、Optionsを元に、入力フォームを作成する。
+    決定ボタンを1つ付ける。
+    決定ボタンを押すと、入力フォームの内容をサーバーに送信する（InitializeChatを呼ぶ）。
+*@
+@if (_display.Options.Count > 0)
+{
+    return;
+}
 
 <h1>@_display.Headline</h1>
 <p><em>@_display.Introduction</em></p>
@@ -30,6 +41,14 @@ else if (_display == null)
     //  物語の進行ごとに、繰り返して表示する
     <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" />
 }
+<DebugPanel ChatLog="_openAi.ChatLog" />
+
+@* ここに入力欄を作成 *@
+@if (!_format.IsDebugMode)
+{
+    return;
+}
+<PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText" />
 
 @code {
     [Parameter]
@@ -55,7 +74,7 @@ else if (_display == null)
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
             // 人格をセット
-            _openAi.InitializeChat(_display.Prompt);
+            _openAi.InitializeChat(_display.MasterPrompt);  // TODO:画面情報を渡すように変更
 
             // 入力欄を作成
             backlogs.Add(new TrpgSession());
@@ -76,6 +95,20 @@ else if (_display == null)
     /// </summary>
     private void NextSession()
     {
+        backlogs.Add(new TrpgSession());
+        StateHasChanged();
+    }
+
+
+    public string ResetPromptText { get; set; } = string.Empty;
+    /// <summary>
+    /// 開発用
+    /// プロンプトを入力されたものに差し替えて再スタート
+    /// </summary>
+    private void ResetPrompt(string text)
+    {
+        _openAi.InitializeChat(text);
+        backlogs.Clear();
         backlogs.Add(new TrpgSession());
         StateHasChanged();
     }
