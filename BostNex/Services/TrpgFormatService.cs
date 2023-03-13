@@ -77,6 +77,7 @@ namespace BostNex.Services
                 Options = new List<DisplayOption> { new DisplayOption() },   // 名前入力
                 IsPublic = true
             });
+            _pageData.Add("Tsunko2", new Display { MasterPrompt = _trpg.Tsunko2, Title = "つん子2", Address = "Tsunko2", Headline = "ツン子とお話しよう！改" });
 
             // 開発モードの場合
             if (!_options.IsLocalDevelopMode)
@@ -97,7 +98,6 @@ namespace BostNex.Services
         }
     }
 
-    // TODO:コピーして使うようにしないとOptions入力が残っちゃうでしょ。
     /// <summary>
     /// 画面データ
     /// </summary>
