@@ -78,6 +78,17 @@ namespace BostNex.Services
                 IsPublic = true
             });
             _pageData.Add("Tsunko2", new Display { MasterPrompt = _trpg.Tsunko2, Title = "つん子2", Address = "Tsunko2", Headline = "ツン子とお話しよう！改" });
+            _pageData.Add("OverLoad", new Display
+            {
+                Address = "OverLoad",
+                Title = "魔王",
+                Headline = "魔王！",
+                Introduction = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
+                Placeholder = "ここがあの魔王のHouseね",
+                SubmitText = "発言する",
+                MasterPrompt = _trpg.OverLoad,
+                IsPublic = true
+            });
 
             // 開発モードの場合
             if (!_options.IsLocalDevelopMode)
@@ -137,6 +148,10 @@ namespace BostNex.Services
             CurrentPrompt.Clear();
             CurrentPrompt.AddRange(MasterPrompt);
 
+            if (CurrentPrompt.Count == 0)
+            {
+                return;
+            }
             var values = Options.Select(x => x.Value ?? string.Empty).ToArray();
             var content = CurrentPrompt[0].Content.FormatWith(values);
             CurrentPrompt[0] = new ChatPrompt(MasterPrompt[0].Role, content);
