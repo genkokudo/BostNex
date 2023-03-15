@@ -71,6 +71,12 @@ namespace BostNex.Services
         /// </summary>
         private readonly List<ChatPrompt> _chatLogs = new();
 
+        /// <summary>
+        /// チャットを飛ばす数
+        /// トークン上限に引っかかったら、2ずつ増やす
+        /// </summary>
+        private int _skipLogs = 0;
+
         public OpenAiService(IOptions<OpenAiOption> options)
         {
             _options = options.Value;
@@ -86,6 +92,7 @@ namespace BostNex.Services
                 display.ApplyOption();
                 currentDisplay = display;
             }
+            _skipLogs = 0;
             _chatLogs.Clear();
         }
 
@@ -93,12 +100,29 @@ namespace BostNex.Services
         {
             _chatLogs.Add(new ChatPrompt(ChatRoles.user.ToString(), input));
             var chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
-            var result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+            ChatResponse result;
+            try
+            {
+                result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("maximum context length"))
+                {
+                    // トークン数の上限を超えたので、ログを1個消して再送が良さそう
+                    _skipLogs += 2;
+                    chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
+                    result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+                }
+                else
+                {
+                    throw;
+                }
+            }
             _chatLogs.Add(new ChatPrompt(ChatRoles.assistant.ToString(), result.FirstChoice));
-
             return result.FirstChoice;
         }
-
+        
         /// <summary>
         /// 現状、GPTに送るチャットログを取得する
         /// プロンプトと件数を制限した会話ログを連結する
@@ -108,7 +132,7 @@ namespace BostNex.Services
         {
             var result = new List<ChatPrompt>();
             result.AddRange(currentDisplay.CurrentPrompt);
-            result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount)));   //_chatLogsの件数を新しい方から指定件数取る
+            result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount + _skipLogs)));   //_chatLogsの件数を新しい方から指定件数取る
             return result;
         }
 
