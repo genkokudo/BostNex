@@ -124,7 +124,7 @@ namespace BostNex.Services
         /// <summary>送信ボタン</summary>
         public string SubmitText { get; set; } = "送信";
         /// <summary>
-        /// マスター扱い。上書きとかしないこと
+        /// マスター扱い。上書きとかしないこと（開発モードは別）
         /// </summary>
         public List<ChatPrompt> MasterPrompt { get; set; } = new();
         /// <summary>これがfalseの場合、"IsLocalDevelopMode": falseならば表示しない</summary>

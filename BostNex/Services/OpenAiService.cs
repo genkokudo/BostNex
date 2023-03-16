@@ -137,6 +137,7 @@ namespace BostNex.Services
         }
 
         // 開発用
+        // MasterPromptを上書きするので注意
         public void InitializeChat(string prompts)
         {
             var result = new List<ChatPrompt>();
@@ -147,7 +148,7 @@ namespace BostNex.Services
                 role = result.Count == 0 ? ChatRoles.system : role;
                 result.Add(new ChatPrompt(role.ToString(), item));
             }
-            currentDisplay.CurrentPrompt = result;
+            currentDisplay.MasterPrompt = result;
             InitializeChat(currentDisplay);
         }
     }
