@@ -27,6 +27,10 @@
         <div class="col-4">
             <button class="mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">@SubmitText</button>
         </div>
+        if (_isError)
+        {
+            <p class="text-danger">何故か失敗したようだ、混んでるのかな？悪いがもう一回やってくれ</p>
+        }
     }
 </div>
 
@@ -40,13 +44,13 @@
     public TrpgSession Session { get; set; } = null!;
     [Parameter]
     public EventCallback<TrpgSession> SessionChanged { get; set; }
-    
+
     // 表示設定
     [Parameter]
     public string Placeholder { get; set; } = "喋ってみよう！";
     [Parameter]
     public string SubmitText { get; set; } = "送信";
-    
+
     /// <summary>
     /// AIからの返信が終わった時の処理を指定する
     /// </summary>
@@ -71,6 +75,11 @@
     private int rows = 3;
 
     /// <summary>
+    /// 
+    /// </summary>
+    private bool _isError = false;
+
+    /// <summary>
     /// 入力ごとに実行
     /// 入力テキストが空白か判定してボタン活性状態を変える。
     /// </summary>
@@ -87,10 +96,20 @@
     private async Task SubmitSessionAsync()
     {
         Session.IsSubmitted = true;
-        var response =  await _openAi.GetNextSessionAsync(_inputText);
+        _isError = false;
+        try
+        {
+            var response = await _openAi.GetNextSessionAsync(_inputText);
+            Session.AiResponse = response;
+        }
+        catch
+        {
+            Session.IsSubmitted = false;
+            _isError = true;
+            return;
+        }
 
         // 終わったらバインド元に反映する
-        Session.AiResponse = response;
         await SessionChanged.InvokeAsync(Session);
 
         // セッションを進めることを親に伝える。

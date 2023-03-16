@@ -111,11 +111,20 @@ namespace BostNex.Services
                 {
                     // トークン数の上限を超えたので、ログを1個消して再送が良さそう
                     _skipLogs += 2;
-                    chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
-                    result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+                    try
+                    {
+                        chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
+                        result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+                    }
+                    catch (Exception)
+                    {
+                        _chatLogs.RemoveAt(_chatLogs.Count - 1);
+                        throw;
+                    }
                 }
                 else
                 {
+                    _chatLogs.RemoveAt(_chatLogs.Count - 1);
                     throw;
                 }
             }
@@ -132,7 +141,7 @@ namespace BostNex.Services
         {
             var result = new List<ChatPrompt>();
             result.AddRange(currentDisplay.CurrentPrompt);
-            result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount + _skipLogs)));   //_chatLogsの件数を新しい方から指定件数取る
+            result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount) + _skipLogs));   //_chatLogsの件数を新しい方から指定件数取る
             return result;
         }
 
