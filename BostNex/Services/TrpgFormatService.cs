@@ -42,7 +42,6 @@ namespace BostNex.Services
             _options = options.Value;
 
             // 追加していくこと
-            // TODO: これをクライアント側で一覧表示する。
             _pageData.Add("Default", new Display {
                 Address = "Default",
                 Title = "デフォルトモデル",
@@ -53,7 +52,7 @@ namespace BostNex.Services
                 MasterPrompt = _trpg.DefaultPrompt,
                 IsPublic = false
             });
-            _pageData.Add("Tsunko", new Display { MasterPrompt = _trpg.Tsunko });
+            //_pageData.Add("Tsunko", new Display { MasterPrompt = _trpg.Tsunko });
             _pageData.Add("Trpg", new Display
             {
                 Address = "Trpg",
@@ -81,12 +80,23 @@ namespace BostNex.Services
             _pageData.Add("OverLoad", new Display
             {
                 Address = "OverLoad",
-                Title = "魔王",
-                Headline = "魔王！",
+                Title = "魔王♂",
+                Headline = "魔王♂",
                 Introduction = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
                 Placeholder = "ここがあの魔王のHouseね",
                 SubmitText = "発言する",
                 MasterPrompt = _trpg.OverLoad,
+                IsPublic = true
+            });
+            _pageData.Add("FemaleOverLoad", new Display
+            {
+                Address = "FemaleOverLoad",
+                Title = "魔王♀",
+                Headline = "魔王♀",
+                Introduction = "500年間封印され続けた古の大魔王。今その封印が解かれようとしている！？",
+                Placeholder = "女魔王とお話する",
+                SubmitText = "発言する",
+                MasterPrompt = _trpg.FemaleOverLoad,
                 IsPublic = true
             });
 
