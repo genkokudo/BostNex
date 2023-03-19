@@ -79,9 +79,14 @@
     /// </summary>
     private bool _isError = false;
 
-    // TODO:破棄判定が欲しい。API送信対象から外れたログは薄い赤の背景色を付ける
+    // TODO:デバッグモードのリセット時にDisableも解除したい。1個目だけでいいから。
     [Parameter]
     public List<string> CurrentChat { get; set; } = null!;
+
+
+    /// <summary>
+    /// これがtrueになっているメッセージはAPIにもう送信されないことを示す（表示のみで実際の制御は他の所で行う）
+    /// </summary>
     private bool IsDisposed { get; set; } = false;
 
     protected override void OnParametersSet()
@@ -111,6 +116,7 @@
     private async Task SubmitSessionAsync()
     {
         Session.IsSubmitted = true;
+        IsDisposed = false;
         _isError = false;
         try
         {

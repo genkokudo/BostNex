@@ -76,16 +76,27 @@ namespace BostNex.Services
                 IsPublic = true
             });
             _pageData.Add("Tsunko2", new Display { MasterPrompt = _trpg.Tsunko2, Title = "つん子2", Address = "Tsunko2", Headline = "ツン子とお話しよう！改" });
-            _pageData.Add("OverLoad", new Display
+            _pageData.Add("DonpenKarma", new Display
             {
-                Address = "OverLoad",
-                Title = "魔王♂",
-                Headline = "魔王♂",
+                Address = "DonpenKarma",
+                Title = "魔王（兄）",
+                Headline = "魔王（兄）",
                 Introduction = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
                 Placeholder = "ここがあの魔王のHouseね",
                 SubmitText = "発言する",
-                MasterPrompt = _trpg.OverLoad,
+                MasterPrompt = _trpg.DonpenKarma,
                 IsPublic = true
+            });
+            _pageData.Add("PrankDaemon", new Display
+            {
+                Address = "PrankDaemon",
+                Title = "魔王（弟）",
+                Headline = "魔王（弟）",
+                Introduction = "人間と勝負するのが好きな魔王",
+                Placeholder = "勝負を挑もう！",
+                SubmitText = "闘う",
+                MasterPrompt = _trpg.PrankDaemon,
+                IsPublic = false
             });
             _pageData.Add("FemaleOverLoad", new Display
             {
@@ -96,6 +107,17 @@ namespace BostNex.Services
                 Placeholder = "女魔王とお話する",
                 SubmitText = "発言する",
                 MasterPrompt = _trpg.FemaleOverLoad,
+                IsPublic = true
+            });
+            _pageData.Add("Yanko", new Display
+            {
+                Address = "Yanko",
+                Title = "ヤン子",
+                Headline = "ヤン子",
+                Introduction = "ヤ、ヤン子…",
+                Placeholder = "ヤン子とお話する",
+                SubmitText = "送信",
+                MasterPrompt = _trpg.Yanko,
                 IsPublic = true
             });
 
