@@ -3,12 +3,7 @@
 @inject ITrpgFormatService _format;
 @inject IOpenAiService _openAi
 
-@* デバッグモード *@
-@if (!_format.IsDebugMode)
-{
-    return;
-}
-
+@* 今までのチャットログを表示する *@
 <p class="mt-5">debug mode</p>
 <table class="table table-primary table-striped table-bordered">
     <thead>
@@ -20,7 +15,7 @@
     <tbody>
         @foreach (var log in ChatLog)
         {
-            var content = (MarkupString)log.Content.Replace("\r\n", "<br />");
+            var content = (MarkupString)log.Content.Replace("\r\n", "<br />").Replace("\n", "<br />");
             <tr>
                 <td>@log.Role</td>
                 <td>@content</td>

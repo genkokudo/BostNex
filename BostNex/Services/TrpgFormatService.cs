@@ -52,7 +52,6 @@ namespace BostNex.Services
                 MasterPrompt = _trpg.DefaultPrompt,
                 IsPublic = false
             });
-            //_pageData.Add("Tsunko", new Display { MasterPrompt = _trpg.Tsunko });
             _pageData.Add("Trpg", new Display
             {
                 Address = "Trpg",
@@ -175,6 +174,11 @@ namespace BostNex.Services
     {
         public string Subject { get; set; } = "あなたの名前";
         public string Value { get; set; } = "";
+        /// <summary>
+        /// 入力行数
+        /// 2以上だとマルチライン入力欄にする
+        /// </summary>
+        public int Rows { get; set; } = 1;
     }
 
     /// <summary>

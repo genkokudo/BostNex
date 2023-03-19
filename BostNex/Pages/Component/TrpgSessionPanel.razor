@@ -1,10 +1,11 @@
 ﻿@* TRPGのやり取り1回分を表すコンポーネント *@
 @* 
     データの大本は親が持ってないと何かと不便。
-    データの元を子コンポーネントに持たせることはできるけど、後で親で集計する時などに親からのアクセス方法が分からないのでやめておく。
+    データの元を子コンポーネントに持たせることはできるけど、後で親で集計する時などに結構不便だと思うのでやめておく。
 *@
 @using BostNex.Services
 @using BostNexShared.Dto;
+@using OpenAI.Chat;
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
 
@@ -15,10 +16,10 @@
 }
 
 @* 問いに対する回答を入力する *@
-<div class="row">
+<div class="@("row" + (IsDisposed ? " bg-secondary" : ""))">
     @if (Session.IsSubmitted)
     {
-        <p class="text-primary">@((MarkupString)Session.Text.Replace("\r\n", "<br />").Replace("\n", "<br />"))</p>
+        <p class="@(IsDisposed ? "text-white" : "text-primary")"><em>@((MarkupString)Session.Text.Replace("\r\n", "<br />").Replace("\n", "<br />"))</em></p>
     }
     else
     {
@@ -29,13 +30,12 @@
         </div>
         if (_isError)
         {
-            <p class="text-danger">何故か失敗したようだ、混んでるのかな？悪いがもう一回やってくれ</p>
+            <p class="text-danger">APIへの送信に失敗したのでもう一回送信してください</p>
         }
     }
+    @* AIからの返事 *@
+    <p hidden="@(!Session.IsSubmitted)"><em>@((MarkupString)Session.AiResponse.Replace("\r\n", "<br />").Replace("\n", "<br />"))</em></p>
 </div>
-
-@* AIからの返事 *@
-<p hidden="@(!Session.IsSubmitted)"><em>@Session.AiResponse</em></p>
 
 @code {
     //@bind-Session
@@ -75,9 +75,24 @@
     private int rows = 3;
 
     /// <summary>
-    /// 
+    /// エラーが出たら表示し、ユーザーに再送を促す
     /// </summary>
     private bool _isError = false;
+
+    // TODO:破棄判定が欲しい。API送信対象から外れたログは薄い赤の背景色を付ける
+    [Parameter]
+    public List<string> CurrentChat { get; set; } = null!;
+    private bool IsDisposed { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        // 破棄判定をする
+        if (Session.IsSubmitted && !IsDisposed && !CurrentChat.Contains(Session.AiResponse))
+        {
+            IsDisposed = true;  // 一旦破棄されたら基本的に復活しない
+        }
+        base.OnParametersSet();
+    }
 
     /// <summary>
     /// 入力ごとに実行

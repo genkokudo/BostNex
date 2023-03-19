@@ -40,6 +40,7 @@ namespace BostNex.Services
 
         /// <summary>
         /// 今までのチャットログを取得する
+        /// 次回の送信からカットされるものは含まない
         /// </summary>
         public List<ChatPrompt> ChatLog { get; }
     }
@@ -118,18 +119,23 @@ namespace BostNex.Services
                     }
                     catch (Exception)
                     {
+                        // 原因不明のエラー
                         _chatLogs.RemoveAt(_chatLogs.Count - 1);
                         throw;
                     }
                 }
                 else
                 {
+                    // 原因不明のエラー
                     _chatLogs.RemoveAt(_chatLogs.Count - 1);
                     throw;
                 }
             }
-            _chatLogs.Add(new ChatPrompt(ChatRoles.assistant.ToString(), result.FirstChoice));
-            return result.FirstChoice;
+            // 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
+            var aiMessage = result.FirstChoice.Message.Content.Replace("\r\n", "\n").Replace("\n", "\r\n");
+            _chatLogs.Add(new ChatPrompt(ChatRoles.assistant.ToString(), aiMessage));
+
+            return aiMessage;
         }
         
         /// <summary>
