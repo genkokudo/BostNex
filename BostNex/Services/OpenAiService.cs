@@ -36,13 +36,24 @@ namespace BostNex.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns>AIからの返答</returns>
-        public Task<string> GetNextSessionAsync(string input);
+        public Task<string> GetNextSessionAsync(string input, double temperature = 1.0);
 
         /// <summary>
         /// 今までのチャットログを取得する
         /// 次回の送信からカットされるものは含まない
         /// </summary>
         public List<ChatPrompt> ChatLog { get; }
+
+        /// <summary>
+        /// 最後に発生したエラー
+        /// </summary>
+        public string LastError { get; }
+
+        /// <summary>
+        /// 現在の画面データ
+        /// プロンプトもここに格納
+        /// </summary>
+        public Display CurrentDisplay { get; }
     }
 
     public class OpenAiService : IOpenAiService
@@ -50,22 +61,16 @@ namespace BostNex.Services
         private readonly OpenAIClient _api;
         private readonly OpenAiOption _options;
 
+        public string LastError { get; set; } = string.Empty;
+        public Display CurrentDisplay { get => currentDisplay; }
+
         /// <summary>
         /// プロンプト含む全チャットログ
         /// </summary>
         public List<ChatPrompt> ChatLog => GetAllChat();
 
-        // 毎回、_chatPromptsと既定回数の_chatLogsを合わせてAPIに送る
-        ///// <summary>
-        ///// 現在のチャットプロンプト
-        ///// セッション毎に、このプロンプトでAPIに送るチャットログを再作成する
-        ///// </summary>
-        //private List<ChatPrompt> _chatPrompts = new();
-
-        /// <summary>
-        /// 現在の画面データ
-        /// </summary>
         private Display currentDisplay = null!;
+
         /// <summary>
         /// 今までのチャットログ、プロンプトは含まない
         /// カットしていない全ての生データをここに保持する
@@ -97,10 +102,12 @@ namespace BostNex.Services
             _chatLogs.Clear();
         }
 
-        public async Task<string> GetNextSessionAsync(string input)
+        public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
         {
             _chatLogs.Add(new ChatPrompt(ChatRoles.user.ToString(), input));
-            var chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
+            var allChat = GetAllChat();
+            
+            var chatRequest = new ChatRequest(allChat, maxTokens: _options.MaxTokens);
             ChatResponse result;
             try
             {
@@ -111,16 +118,18 @@ namespace BostNex.Services
                 if (ex.Message.Contains("maximum context length"))
                 {
                     // トークン数の上限を超えたので、ログを1個消して再送が良さそう
+                    LastError = ex.Message + $"_skipLogs:{_skipLogs}に2を加えます";
                     _skipLogs += 2;
                     try
                     {
                         chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
                         result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
                     }
-                    catch (Exception)
+                    catch (Exception ex2)
                     {
                         // 原因不明のエラー
                         _chatLogs.RemoveAt(_chatLogs.Count - 1);
+                        LastError = "ex2:" + ex2.Message;
                         throw;
                     }
                 }
@@ -128,12 +137,14 @@ namespace BostNex.Services
                 {
                     // 原因不明のエラー
                     _chatLogs.RemoveAt(_chatLogs.Count - 1);
+                    LastError = "ex:" + ex.Message;
                     throw;
                 }
             }
             // 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
             var aiMessage = result.FirstChoice.Message.Content.Replace("\r\n", "\n").Replace("\n", "\r\n");
             _chatLogs.Add(new ChatPrompt(ChatRoles.assistant.ToString(), aiMessage));
+            LastError = string.Empty;
 
             return aiMessage;
         }

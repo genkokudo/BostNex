@@ -8,6 +8,7 @@
 @using OpenAI.Chat;
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
+@inject ITrpgFormatService _format;
 
 @if (Session == null)
 {
@@ -36,6 +37,14 @@
     @* AIからの返事 *@
     <p hidden="@(!Session.IsSubmitted)"><em>@((MarkupString)Session.AiResponse.Replace("\r\n", "<br />").Replace("\n", "<br />"))</em></p>
 </div>
+
+@* ここからデバッグモード *@
+@if (!_format.IsDebugMode)
+{
+    return;
+}
+@* エラーを表示 *@
+<p class="text-danger">@_openAi.LastError</p>
 
 @code {
     //@bind-Session
@@ -79,7 +88,6 @@
     /// </summary>
     private bool _isError = false;
 
-    // TODO:デバッグモードのリセット時にDisableも解除したい。1個目だけでいいから。
     [Parameter]
     public List<string> CurrentChat { get; set; } = null!;
 

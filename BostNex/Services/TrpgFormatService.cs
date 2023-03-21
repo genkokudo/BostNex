@@ -75,7 +75,7 @@ namespace BostNex.Services
                 Options = new List<DisplayOption> { new DisplayOption() },   // 名前入力
                 IsPublic = true
             });
-            _pageData.Add("Tsunko2", new Display { MasterPrompt = _trpg.Tsunko2, Title = "つん子2", Address = "Tsunko2", Headline = "ツン子とお話しよう！改" });
+            _pageData.Add("Tsunko", new Display { MasterPrompt = _trpg.Tsunko, Title = "ツン子", Address = "Tsunko", Headline = "ツン子とお話しよう！" });
             _pageData.Add("DonpenKarma", new Display
             {
                 Address = "DonpenKarma",
@@ -96,7 +96,7 @@ namespace BostNex.Services
                 Placeholder = "勝負を挑もう！",
                 SubmitText = "闘う",
                 MasterPrompt = _trpg.PrankDaemon,
-                IsPublic = false
+                IsPublic = true
             });
             _pageData.Add("FemaleOverLoad", new Display
             {
@@ -154,6 +154,10 @@ namespace BostNex.Services
         public string Placeholder { get; set; } = "喋ってみよう！";
         /// <summary>送信ボタン</summary>
         public string SubmitText { get; set; } = "送信";
+        ///// <summary>
+        ///// 0から2の範囲で指定するけど、大きすぎると壊れる
+        ///// </summary>
+        //public double Temperature { get; set; } = 2.0;
         /// <summary>
         /// マスター扱い。上書きとかしないこと（開発モードは別）
         /// </summary>
