@@ -44,7 +44,7 @@ namespace BostNex.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Generals");
+                    b.ToTable("Generals", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
