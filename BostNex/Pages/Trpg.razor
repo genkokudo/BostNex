@@ -53,7 +53,7 @@ else if (_display == null)
     foreach (var log in backlogs)
     {
         //  物語の進行ごとに、繰り返して表示する
-        <TrpgSessionPanel Session="log" OnSubmitFinished="(bool isExistContinuation) => NextSession(isExistContinuation)" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" CurrentChat="currentChat" />
+        <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" CurrentChat="currentChat" />
     }
 }
 
@@ -124,7 +124,7 @@ else if (_display == null)
     /// 終了判定
     /// 次のセッションを作成
     /// </summary>
-    private void NextSession(bool isExistContinuation)
+    private void NextSession()
     {
         backlogs.Add(new TrpgSession());
         StateHasChanged();
