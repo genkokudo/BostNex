@@ -106,8 +106,8 @@ namespace BostNex.Services
         {
             _chatLogs.Add(new ChatPrompt(ChatRoles.user.ToString(), input));
             var allChat = GetAllChat();
-            
-            var chatRequest = new ChatRequest(allChat, maxTokens: _options.MaxTokens);
+
+            var chatRequest = new ChatRequest(allChat, maxTokens: _options.MaxTokens);  //, model: OpenAI.Models.Model.GPT4);
             ChatResponse result;
             try
             {
