@@ -28,6 +28,7 @@
         <InputTextArea class="col-12" @oninput="OnInput" @bind-Value="@Session.Text" placeholder="@Placeholder" rows="@rows" />
         <div class="col-4">
             <button class="mt-3 btn btn-primary" @onclick="SubmitSessionAsync" disabled="@IsDisableButton">@SubmitText</button>
+            <button class="mt-3 ms-5 btn btn-primary" @onclick="RequestContinue" disabled="@Session.IsSubmitted">続きを要求する</button>
         </div>
         if (_isError)
         {
@@ -104,6 +105,10 @@
         {
             IsDisposed = true;  // 一旦破棄されたら基本的に復活しない
         }
+        if (Session.IsSubmitted == false)   // 他から来たのにIsDisposedになってたら解除しておく
+        {
+            IsDisposed = false;
+        }
         base.OnParametersSet();
     }
 
@@ -115,6 +120,17 @@
     {
         _inputText = e.Value!.ToString()!;
         rows = Math.Max(3, _inputText.Length - _inputText.Replace("\n", "").Length + 1);
+    }
+
+    /// <summary>
+    /// 続きを要求するボタン
+    /// </summary>
+    /// <returns></returns>
+    private async Task RequestContinue()
+    {
+        _inputText = "続きを頼む";
+        Session.Text = "続きを頼む";
+        await SubmitSessionAsync();
     }
 
     /// <summary>

@@ -7,6 +7,17 @@
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
 @inject ITrpgFormatService _format;
+@inject IJSRuntime JS
+
+@* デバッグモード *@
+@if (_display != null && _format.IsDebugMode)
+{
+    @* 現在のチャットログ表示 *@
+    <DebugPanel ChatLog="_openAi.ChatLog" />
+
+    @* 入力欄 *@
+    <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText" />
+}
 
 <PageTitle>@(_display?.Title ?? "Loading")</PageTitle>
 
@@ -56,18 +67,7 @@ else if (_display == null)
         <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" CurrentChat="currentChat" />
     }
 }
-
-@* ここからデバッグモード *@
-@if (!_format.IsDebugMode)
-{
-    return;
-}
-
-@* 現在のチャットログ表示 *@
-<DebugPanel ChatLog="_openAi.ChatLog" />
-
-@* 入力欄 *@
-<PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText" />
+<div class="my-5"></div>
 
 @code {
     [Parameter]
@@ -77,10 +77,17 @@ else if (_display == null)
     private bool isLoaded = false;
     private bool isSubmittedOptions = false;
 
+    private IJSObjectReference? _jsModule = null!;
     /// <summary>
     /// 今までのセッション
     /// </summary>
     private List<TrpgSession> backlogs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Trpg.razor.js");
+        await base.OnInitializedAsync();
+    }
 
     protected override void OnParametersSet()
     {
@@ -124,10 +131,14 @@ else if (_display == null)
     /// 終了判定
     /// 次のセッションを作成
     /// </summary>
-    private void NextSession()
+    private async void NextSession()
     {
         backlogs.Add(new TrpgSession());
         StateHasChanged();
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("gotoBottom");
+        }
     }
 
 
