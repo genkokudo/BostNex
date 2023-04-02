@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Dto\TrpgSession.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entity\BaseEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entity\TrpgPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entity\CharactorSheet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entity\General.cs" />
   </ItemGroup>

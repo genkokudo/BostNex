@@ -120,6 +120,17 @@ namespace BostNex.Services
                 MasterPrompt = _trpg.Yanko,
                 IsPublic = true
             });
+            _pageData.Add("Geed", new Display
+            {
+                Address = "Geed",
+                Title = "獣人♂",
+                Headline = "獣人♂",
+                Introduction = "人間は獣人に服従すべき脆弱な種族だ",
+                Placeholder = "ジードとお話する",
+                SubmitText = "送信",
+                MasterPrompt = _trpg.Geed,
+                IsPublic = false
+            });
 
             // 開発モードの場合
             if (!_options.IsLocalDevelopMode)

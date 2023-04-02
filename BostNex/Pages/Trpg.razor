@@ -85,8 +85,13 @@ else if (_display == null)
 
     protected override async Task OnInitializedAsync()
     {
-        _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Trpg.razor.js");
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_jsModule == null) _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Trpg.razor.js");
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     protected override void OnParametersSet()

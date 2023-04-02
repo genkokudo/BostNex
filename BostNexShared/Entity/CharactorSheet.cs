@@ -24,5 +24,4 @@ namespace BostNexShared.Entity
 
     // 画面定義クラス
     // CharactorSheetのリスト
-
 }
