@@ -129,7 +129,7 @@ namespace BostNex.Services
                 Placeholder = "ジードとお話する",
                 SubmitText = "送信",
                 MasterPrompt = _trpg.Geed,
-                IsPublic = false
+                IsPublic = true
             });
 
             // 開発モードの場合
