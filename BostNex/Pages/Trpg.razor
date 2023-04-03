@@ -12,11 +12,16 @@
 @* デバッグモード *@
 @if (_display != null && _format.IsDebugMode)
 {
-    @* 現在のチャットログ表示 *@
-    <DebugPanel ChatLog="_openAi.ChatLog" />
+    <div class="bg-success">
+        <p>★debug mode★</p>
+        <Collapse @bind-IsCollapsed="IsCollapsed">
+            @* 現在のチャットログ表示 *@
+            <DebugPanel ChatLog="_openAi.ChatLog" />
 
-    @* 入力欄 *@
-    <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText" />
+            @* 入力欄 *@
+            <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText" />
+        </Collapse>
+    </div>
 }
 
 <PageTitle>@(_display?.Title ?? "Loading")</PageTitle>
@@ -73,6 +78,9 @@ else if (_display == null)
     [Parameter]
     public string? Pagedata { get; set; }
 
+    // デバッグモード用
+    public bool IsCollapsed { get; set; } = true;
+
     private Display? _display;
     private bool isLoaded = false;
     private bool isSubmittedOptions = false;
@@ -100,6 +108,7 @@ else if (_display == null)
         isLoaded = false;
         _display = null;
         isSubmittedOptions = false;
+        IsCollapsed = true;
         backlogs.Clear();
         base.OnParametersSet();
 

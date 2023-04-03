@@ -1,7 +1,7 @@
 ﻿@* 文字入力欄と送信ボタンだけのコンポーネントが欲しい *@
 
-<div class="row">
-    <InputTextArea class="col-md-12" @bind-Value="Text" rows="2" />
+<div class="row ms-5 pb-3">
+    <InputTextArea class="col-md-10" @bind-Value="Text" rows="2" />
     <button class="col-4 btn-danger" @onclick="OnButtonClicked">リセット</button>
 </div>
 
@@ -18,7 +18,6 @@
     
     private async Task OnButtonClicked()
     {
-        var r = new Random();
         await OnClickCallback.InvokeAsync(Text);
     }
 }
