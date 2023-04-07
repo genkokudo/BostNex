@@ -131,6 +131,17 @@ namespace BostNex.Services
                 MasterPrompt = _trpg.Geed,
                 IsPublic = true
             });
+            _pageData.Add("Test", new Display
+            {
+                Address = "Test",
+                Title = "Test",
+                Headline = "Test",
+                Introduction = "Test",
+                Placeholder = "aaaa",
+                SubmitText = "送信",
+                MasterPrompt = _trpg.Test,
+                IsPublic = false
+            });
 
             // 開発モードの場合
             if (!_options.IsLocalDevelopMode)
