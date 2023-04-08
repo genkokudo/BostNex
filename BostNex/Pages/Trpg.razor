@@ -1,34 +1,37 @@
 ﻿@page "/trpg"
 @page "/trpg/{pagedata}"
+@using Azure.AI.OpenAI;
 @using BostNex.Data
 @using BostNex.Services
 @using BostNex.Pages.Component
-@using BostNexShared.Dto;
+@using BostNexShared.Dto
+@using Microsoft.Extensions.Options
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
-@inject ITrpgFormatService _format;
+@inject ITrpgFormatService _format
 @inject IJSRuntime JS
+@inject IOptions<OpenAiOption> _options
 
 @* デバッグモード *@
-@if (_display != null && _format.IsDebugMode)
-{
-    <div class="bg-success">
-        <p>★debug mode★</p>
-        <Collapse @bind-IsCollapsed="IsCollapsed">
-            @* 現在のチャットログ表示 *@
-            <DebugPanel ChatLog="_openAi.ChatLog" />
-
-            @* 入力欄 *@
-            <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText" />
-        </Collapse>
-    </div>
-}
+<DebugPanel IsVisible="_display != null && _format.IsDebugMode">
+    <Collapse @bind-IsCollapsed="IsCollapsed">
+        @* 現在のチャットログ表示 *@
+        <ChatGptLogPanel Logs="_openAi.ChatLog" />
+        @* プロンプト入力欄 *@
+        <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText">
+            <h3>プロンプトの入力</h3>
+            <p>チャットログをリセットしてプロンプトを再設定します。<br />@(_options.Value.Separate)で区切ることでUserとAssistantも入力できます。</p>
+        </PromptPanel>
+    </Collapse>
+</DebugPanel>
 
 <PageTitle>@(_display?.Title ?? "Loading")</PageTitle>
 
 @if (!isLoaded)
 {
-    <p><em>Loading...</em></p>
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
     return;
 }
 else if (_display == null)
@@ -65,7 +68,7 @@ else if (_display == null)
 @* セッションの表示 *@
 @{
     // 現在有効なチャットに含まれているか確認する
-    var currentChat = _openAi.ChatLog.Where(x => x.Role == ChatRoles.assistant.ToString()).Select(x => x.Content).ToList();  // AIの返答のみで判定
+    var currentChat = _openAi.ChatLog.Where(x => x.Role == ChatRole.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
         //  物語の進行ごとに、繰り返して表示する

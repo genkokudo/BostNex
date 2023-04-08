@@ -1,18 +1,19 @@
-﻿@* TRPGのやり取り1回分を表すコンポーネント *@
+﻿@* ChatGPTとのやり取り1回分を表すコンポーネント *@
 @* 
-    データの大本は親が持ってないと何かと不便。
+    データの大元は親が持ってないと何かと不便。
     データの元を子コンポーネントに持たせることはできるけど、後で親で集計する時などに結構不便だと思うのでやめておく。
 *@
 @using BostNex.Services
 @using BostNexShared.Dto;
-@using OpenAI.Chat;
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
 @inject ITrpgFormatService _format;
 
 @if (Session == null)
 {
-    <p><em>Loading...</em></p>
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
     return;
 }
 
@@ -128,8 +129,8 @@
     /// <returns></returns>
     private async Task RequestContinue()
     {
-        _inputText = "続きを頼む";
-        Session.Text = "続きを頼む";
+        _inputText = "続きを書いて";
+        Session.Text = "続きを書いて";
         await SubmitSessionAsync();
     }
 

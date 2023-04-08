@@ -2,10 +2,6 @@
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
-using OpenAI;
-using OpenAI.Chat;
-using OpenAI.Completions;
-using OpenAI.Edits;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;

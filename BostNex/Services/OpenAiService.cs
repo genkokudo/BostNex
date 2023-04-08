@@ -1,12 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Azure;
+using Azure.AI.OpenAI;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
-using OpenAI;
-using OpenAI.Chat;
-using OpenAI.Completions;
-using OpenAI.Edits;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -42,7 +40,7 @@ namespace BostNex.Services
         /// 今までのチャットログを取得する
         /// 次回の送信からカットされるものは含まない
         /// </summary>
-        public List<ChatPrompt> ChatLog { get; }
+        public List<ChatMessage> ChatLog { get; }
 
         /// <summary>
         /// 最後に発生したエラー
@@ -67,7 +65,7 @@ namespace BostNex.Services
         /// <summary>
         /// プロンプト含む全チャットログ
         /// </summary>
-        public List<ChatPrompt> ChatLog => GetAllChat();
+        public List<ChatMessage> ChatLog => GetAllChat();
 
         private Display currentDisplay = null!;
 
@@ -75,7 +73,7 @@ namespace BostNex.Services
         /// 今までのチャットログ、プロンプトは含まない
         /// カットしていない全ての生データをここに保持する
         /// </summary>
-        private readonly List<ChatPrompt> _chatLogs = new();
+        private readonly List<ChatMessage> _chatLogs = new();
 
         /// <summary>
         /// チャットを飛ばす数
@@ -86,7 +84,10 @@ namespace BostNex.Services
         public OpenAiService(IOptions<OpenAiOption> options)
         {
             _options = options.Value;
-            _api = new OpenAIClient(new OpenAIAuthentication(_options.ApiKey));
+            _api = _options.UseAzureOpenAI ? new OpenAIClient(
+                new Uri(_options.AzureUri),
+                new AzureKeyCredential(_options.AzureApiKey))
+                : new OpenAIClient(_options.ApiKey);
             InitializeChat();
         }
         
@@ -104,14 +105,23 @@ namespace BostNex.Services
 
         public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
         {
-            _chatLogs.Add(new ChatPrompt(ChatRoles.user.ToString(), input));
+            _chatLogs.Add(new ChatMessage(ChatRole.User, input));
             var allChat = GetAllChat();
 
-            var chatRequest = new ChatRequest(allChat, maxTokens: _options.MaxTokens);  //, model: OpenAI.Models.Model.GPT4);
-            ChatResponse result;
+            // リクエストの作成。設定項目と、今までの会話ログをセット
+            var chatCompletionsOptions = new ChatCompletionsOptions()
+            {
+                MaxTokens = _options.MaxTokens,
+            };
+            chatCompletionsOptions.Messages.AddRange(allChat);
+
+            // 送信
+            Response<StreamingChatCompletions> response;
             try
             {
-                result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+                response = await _api.GetChatCompletionsStreamingAsync(
+                            deploymentOrModelName: "gpt-3.5-turbo", 
+                            chatCompletionsOptions);
             }
             catch (Exception ex)
             {
@@ -122,8 +132,15 @@ namespace BostNex.Services
                     _skipLogs += 2;
                     try
                     {
-                        chatRequest = new ChatRequest(GetAllChat(), maxTokens: _options.MaxTokens);
-                        result = await _api.ChatEndpoint.GetCompletionAsync(chatRequest);
+                        chatCompletionsOptions = new ChatCompletionsOptions()
+                        {
+                            MaxTokens = _options.MaxTokens,
+                        };
+                        chatCompletionsOptions.Messages.AddRange(allChat);
+
+                        response = await _api.GetChatCompletionsStreamingAsync(
+                                    deploymentOrModelName: "gpt-3.5-turbo",
+                                    chatCompletionsOptions);
                     }
                     catch (Exception ex2)
                     {
@@ -141,9 +158,31 @@ namespace BostNex.Services
                     throw;
                 }
             }
-            // 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
-            var aiMessage = result.FirstChoice.Message.Content.Replace("\r\n", "\n").Replace("\n", "\r\n");
-            _chatLogs.Add(new ChatPrompt(ChatRoles.assistant.ToString(), aiMessage));
+
+            // ストリーミングで受け取る（クライアントに返そうかな…？）
+            StringBuilder sb = new StringBuilder();
+            using StreamingChatCompletions streamingChatCompletions = response.Value;
+            await foreach (StreamingChatChoice choice in streamingChatCompletions.GetChoicesStreaming())
+            {
+                await foreach (ChatMessage message in choice.GetMessageStreaming())
+                {
+                    Console.Write(message.Content);
+                    sb.Append(message.Content);
+                }
+                Console.WriteLine();
+            }
+
+            //// 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
+            //var aiMessage = result.FirstChoice.Message.Content.Replace("\r\n", "\n").Replace("\n", "\r\n");
+            var aiMessage =
+                sb.ToString()
+                .Replace("\r\n", "\n")
+                .Replace("\n", "\r\n");
+
+            // チャットログに追加
+            _chatLogs.Add(new ChatMessage(ChatRole.Assistant.ToString(), aiMessage));
+
+            // エラーを画面に表示
             LastError = string.Empty;
 
             return aiMessage;
@@ -154,9 +193,9 @@ namespace BostNex.Services
         /// プロンプトと件数を制限した会話ログを連結する
         /// </summary>
         /// <returns></returns>
-        private List<ChatPrompt> GetAllChat()
+        private List<ChatMessage> GetAllChat()
         {
-            var result = new List<ChatPrompt>();
+            var result = new List<ChatMessage>();
             result.AddRange(currentDisplay.CurrentPrompt);
             result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount) + _skipLogs));   //_chatLogsの件数を新しい方から指定件数取る
             return result;
@@ -166,13 +205,13 @@ namespace BostNex.Services
         // MasterPromptを上書きするので注意
         public void InitializeChat(string prompts)
         {
-            var result = new List<ChatPrompt>();
+            var result = new List<ChatMessage>();
             var splited = prompts.Replace("\n", "\r\n").Split(_options.Separate);
             foreach (var item in splited)
             {
-                var role = result.Count % 2 == 0 ? ChatRoles.assistant : ChatRoles.user;
-                role = result.Count == 0 ? ChatRoles.system : role;
-                result.Add(new ChatPrompt(role.ToString(), item));
+                var role = result.Count % 2 == 0 ? ChatRole.Assistant : ChatRole.User;
+                role = result.Count == 0 ? ChatRole.System : role;
+                result.Add(new ChatMessage(role.ToString(), item));
             }
             currentDisplay.MasterPrompt = result;
             InitializeChat(currentDisplay);
@@ -205,19 +244,18 @@ namespace BostNex.Services
         /// プロンプトの区切りを示す文字列
         /// </summary>
         public string Separate { get; set; } = "<end>";
-    }
 
-    /// <summary>
-    /// チャットの役割
-    /// ToStringをして使う
-    /// </summary>
-    public enum ChatRoles
-    {
-        /// <summary>最初の指示のみ使用する</summary>
-        system,
-        /// <summary>ユーザの入力</summary>
-        user,
-        /// <summary>GPTからの返答</summary>
-        assistant
+        /// <summary>
+        /// Azureを使う
+        /// </summary>
+        public bool UseAzureOpenAI { get; set; } = false;
+        /// <summary>
+        /// AzureのAPIキー
+        /// </summary>
+        public string AzureApiKey { get; set; } = string.Empty;
+        /// <summary>
+        /// Azureのエンドポイント
+        /// </summary>
+        public string AzureUri { get; set; } = string.Empty;
     }
 }

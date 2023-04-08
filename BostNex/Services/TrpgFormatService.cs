@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using Azure.AI.OpenAI;
+using Azure.Core;
 using BostNex.Pages;
 using Humanizer;
 using Microsoft.AspNetCore.Components.Forms;
@@ -6,8 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
-using OpenAI.Chat;
-using OpenAI.Completions;
 using System.Text;
 
 namespace BostNex.Services
@@ -183,7 +182,7 @@ namespace BostNex.Services
         /// <summary>
         /// マスター扱い。上書きとかしないこと（開発モードは別）
         /// </summary>
-        public List<ChatPrompt> MasterPrompt { get; set; } = new();
+        public List<ChatMessage> MasterPrompt { get; set; } = new();
         /// <summary>これがfalseの場合、"IsLocalDevelopMode": falseならば表示しない</summary>
         public bool IsPublic { get; set; } = true;
 
@@ -193,7 +192,7 @@ namespace BostNex.Services
         /// <summary>
         /// 実際に画面で使用するプロンプト
         /// </summary>
-        public List<ChatPrompt> CurrentPrompt { get; set; } = new();
+        public List<ChatMessage> CurrentPrompt { get; set; } = new();
 
         /// <summary>
         /// Option入力後に呼ぶ
@@ -211,7 +210,7 @@ namespace BostNex.Services
             }
             var values = Options.Select(x => x.Value ?? string.Empty).ToArray();
             var content = CurrentPrompt[0].Content.FormatWith(values);
-            CurrentPrompt[0] = new ChatPrompt(MasterPrompt[0].Role, content);
+            CurrentPrompt[0] = new ChatMessage(MasterPrompt[0].Role, content);
         }
     }
 

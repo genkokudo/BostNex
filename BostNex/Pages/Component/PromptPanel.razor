@@ -1,18 +1,27 @@
-﻿@* 文字入力欄と送信ボタンだけのコンポーネントが欲しい *@
-
-<div class="row ms-5 pb-3">
-    <InputTextArea class="col-md-10" @bind-Value="Text" rows="2" />
-    <button class="col-4 btn-danger" @onclick="OnButtonClicked">リセット</button>
+﻿@* 説明、文字入力欄、送信ボタンだけのコンポーネント *@
+<div class="mb-3">
+    @ChildContent
+    <InputTextArea class="form-control mb-3" @bind-Value="Text" rows="3" />
+    <button class="btn btn-danger" @onclick="OnButtonClicked">リセット</button>
 </div>
 
 @code {
     [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// ボタンクリック時の処理
+    /// </summary>
+    [Parameter]
     [EditorRequired]
     public EventCallback<string> OnClickCallback { get; set; }
 
+    /// <summary>
+    /// テキスト入力内容
+    /// @bind-Text
+    /// </summary>
     [Parameter]
     public string? Text { get; set; }
-    
     [Parameter]
     public EventCallback<string> TextChanged { get; set; }
     
