@@ -11,17 +11,22 @@
 
 @if (Session == null)
 {
-    <div class="spinner-border text-primary" role="status">
+    <div class="spinner-border text-primary">
         <span class="visually-hidden">Loading...</span>
     </div>
     return;
 }
 
-@* 問いに対する回答を入力する *@
 <div class="@("row" + (IsDisposed ? " bg-secondary" : ""))">
+    @* Userの入力 *@
     @if (Session.IsSubmitted)
     {
-        <p class="@(IsDisposed ? "text-white" : "text-primary")"><em>@((MarkupString)Session.Text.Replace("\r\n", "<br />").Replace("\n", "<br />"))</em></p>
+        <div class="d-flex flex-row justify-content-start mb-4 col-11">
+            <img src="/Img/head_right.svg" alt="User" class="chat-icon">
+            <div class="p-3 says mycomment mx-3">
+                <p>@((MarkupString)Session.Text.Replace("\r\n", "<br />").Replace("\n", "<br />"))</p>
+            </div>
+        </div>
     }
     else
     {
@@ -37,7 +42,16 @@
         }
     }
     @* AIからの返事 *@
-    <p hidden="@(!Session.IsSubmitted)"><em>@((MarkupString)Session.AiResponse.Replace("\r\n", "<br />").Replace("\n", "<br />"))</em></p>
+    @if (Session.IsSubmitted)
+    {
+        <div class="col-1" />
+        <div class="d-flex flex-row justify-content-end mb-4 col-11">
+            <div class="p-3 says aicomment mx-3">
+                <p>@((MarkupString)Session.AiResponse.Replace("\r\n", "<br />").Replace("\n", "<br />"))</p>
+            </div>
+            <img src="/Img/head_left.svg" alt="Com" class="chat-icon">
+        </div>
+    }
 </div>
 
 @* ここからデバッグモード *@
@@ -129,6 +143,10 @@
     /// <returns></returns>
     private async Task RequestContinue()
     {
+        if (Session.IsSubmitted)
+        {
+            return;
+        }
         _inputText = "続きを書いて";
         Session.Text = "続きを書いて";
         await SubmitSessionAsync();
@@ -140,6 +158,11 @@
     /// <returns></returns>
     private async Task SubmitSessionAsync()
     {
+        if (Session.IsSubmitted)
+        {
+            return;
+        }
+
         Session.IsSubmitted = true;
         IsDisposed = false;
         _isError = false;
