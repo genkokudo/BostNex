@@ -40,6 +40,7 @@ else if (_display == null)
     return;
 }
 
+@* TODO:これはコンポーネントにすればいいかな。 *@
 @if (_display.Options.Count > 0 && !isSubmittedOptions)
 {
     // _display.Optionがある場合は、入力完了してから開始する
@@ -75,6 +76,8 @@ else if (_display == null)
         <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" CurrentChat="currentChat" />
     }
 }
+
+@* TODO:入力欄をこっちに出す。キーボードショートカットに対応させるために。 *@
 <div class="my-5"></div>
 
 @code {

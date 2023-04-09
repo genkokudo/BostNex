@@ -243,7 +243,7 @@ namespace BostNex.Services
         /// 開発用
         /// プロンプトの区切りを示す文字列
         /// </summary>
-        public string Separate { get; set; } = "<end>";
+        public string Separate { get; set; } = "#end#";
 
         /// <summary>
         /// Azureを使う

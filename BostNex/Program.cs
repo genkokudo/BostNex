@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.AzureAppServices;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,7 @@ builder.Services.AddScoped<IOpenAiService, OpenAiService>();                // S
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
 builder.Services.Configure<TrpgOption>(builder.Configuration.GetSection("TrpgSettings"));
+builder.Services.AddHotKeys2(); // キーボードショートカットを入れる
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -4,10 +4,10 @@
     データの元を子コンポーネントに持たせることはできるけど、後で親で集計する時などに結構不便だと思うのでやめておく。
 *@
 @using BostNex.Services
-@using BostNexShared.Dto;
+@using BostNexShared.Dto
 @inject IOpenAiService _openAi
 @inject ITrpgService _trpg
-@inject ITrpgFormatService _format;
+@inject ITrpgFormatService _format
 
 @if (Session == null)
 {
@@ -107,7 +107,6 @@
     [Parameter]
     public List<string> CurrentChat { get; set; } = null!;
 
-
     /// <summary>
     /// これがtrueになっているメッセージはAPIにもう送信されないことを示す（表示のみで実際の制御は他の所で行う）
     /// </summary>
@@ -187,4 +186,5 @@
             OnSubmitFinished.Invoke();
         }
     }
+
 }
