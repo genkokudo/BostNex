@@ -26,6 +26,6 @@ namespace BostNexShared.Dto
         /// （遷移した時の画面のリフレッシュに必要）
         /// 以降はこのセッションに書き込めなくする。
         /// </summary>
-        public bool IsSubmitted = false;
+        public bool IsSubmitted = false;                    // TODO:これは削除。ただし、ストリーミングで受け取る仕組みを追加するかも
     }
 }

@@ -105,7 +105,7 @@ namespace BostNex.Services
 
         public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
         {
-            _chatLogs.Add(new ChatMessage(ChatRole.User, input));
+            _chatLogs.Add(new ChatMessage(ChatRole.User, input));                   // チャットログってUserとAssistantとセットで入れた方が良いと思う。
             var allChat = GetAllChat();
 
             // リクエストの作成。設定項目と、今までの会話ログをセット
@@ -159,12 +159,12 @@ namespace BostNex.Services
                 }
             }
 
-            // ストリーミングで受け取る（クライアントに返そうかな…？）
-            StringBuilder sb = new StringBuilder();
+            // ストリーミングで受け取る
+            var sb = new StringBuilder();
             using StreamingChatCompletions streamingChatCompletions = response.Value;
-            await foreach (StreamingChatChoice choice in streamingChatCompletions.GetChoicesStreaming())
+            await foreach (StreamingChatChoice choice in streamingChatCompletions.GetChoicesStreaming())    // こっちを返した方が良いかな？
             {
-                await foreach (ChatMessage message in choice.GetMessageStreaming())
+                await foreach (ChatMessage message in choice.GetMessageStreaming())                         // わからん。StringBuilderじゃなくてこれを返したいんだけど。改行はクライアント側で\nだけBRに置換
                 {
                     Console.Write(message.Content);
                     sb.Append(message.Content);
@@ -180,7 +180,7 @@ namespace BostNex.Services
                 .Replace("\n", "\r\n");
 
             // チャットログに追加
-            _chatLogs.Add(new ChatMessage(ChatRole.Assistant.ToString(), aiMessage));
+            _chatLogs.Add(new ChatMessage(ChatRole.Assistant.ToString(), aiMessage));                       // クライアントで受け取るので、追加用メソッドを作ってクライアントから送る。
 
             // エラーを画面に表示
             LastError = string.Empty;

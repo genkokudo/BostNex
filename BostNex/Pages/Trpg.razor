@@ -61,7 +61,14 @@ else if (_display == null)
     }
 }
 
-@* TODO:入力欄をこっちに出す。キーボードショートカットに対応させるために。 *@
+@* TODO:チャット入力欄をこっちに出す。キーボードショートカットに対応させるために。 *@
+@if (false)  // TODO:入力可
+{
+    // TODO:この↓IsSubmitted要らないかも。非表示で。いや、出したり消したりの方が鬱陶しいか。
+    <InputChatPanel IsSubmitted="IsSubmitted" OnClickCallback="SubmitSessionAsync"></InputChatPanel>
+}
+
+
 <div class="my-5"></div>
 
 @code {
@@ -77,9 +84,8 @@ else if (_display == null)
     private bool IsRequiredInputOption { get => _display != null && _display.Options.Count > 0 && !isSubmittedOptions; }
 
     private IJSObjectReference? _jsModule = null!;
-    /// <summary>
-    /// 今までのセッション
-    /// </summary>
+
+    /// <summary>今までのセッション</summary>
     private List<TrpgSession> backlogs = new();
 
     protected override async Task OnInitializedAsync()
@@ -160,5 +166,54 @@ else if (_display == null)
         StateHasChanged();
     }
 
+
+    // 今は、各Sessionが送信状態を持っているが、テキストを受け取って初めてSessionを作成するように変更。
+    // ただし、エラー発生時は送信前に戻さなければならない。
+    // 送信中：Sessionを作成してセッションログに追加
+    // エラー発生時：セッションログの最後を消す
+
+    /// <summary>
+    /// 送信ボタンを押したらtrue、ボタンの制御に使用
+    /// <summary>
+    public bool IsSubmitted { get; set; } = false;
+    // TODO:TrpgSessionクラスからIsSubmittedは削除。
+
+    /// <summary>
+    /// 入力したテキストを送信する
+    /// </summary>
+    /// <returns></returns>
+    private async Task SubmitSessionAsync(string input)
+    {
+        if (IsSubmitted)
+        {
+            return;
+        }
+
+        IsSubmitted = true;
+
+        try
+        {
+            //new TrpgSession() はこのタイミングで行って、後でストリーミング受信するように変更する。
+            var response = await _openAi.GetNextSessionAsync(input);
+            //Session.AiResponse = response;
+            backlogs.Add(new TrpgSession { Text = input, AiResponse = response });
+            IsSubmitted = false;
+        }
+        catch
+        {
+            IsSubmitted = false;
+            //_isError = true;
+            return;
+        }
+
+        //// 終わったらバインド元に反映する
+        //await SessionChanged.InvokeAsync(Session);
+
+        //// セッションを進めることを親に伝える。
+        //if (OnSubmitFinished != null)
+        //{
+        //    OnSubmitFinished.Invoke();
+        //}
+    }
 }
 
