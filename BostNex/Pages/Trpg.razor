@@ -1,5 +1,7 @@
 ﻿@page "/trpg"
 @page "/trpg/{pagedata}"
+@implements IDisposable
+@using Toolbelt.Blazor.HotKeys2
 @using Azure.AI.OpenAI;
 @using BostNex.Data
 @using BostNex.Services
@@ -11,6 +13,7 @@
 @inject ITrpgFormatService _format
 @inject IJSRuntime JS
 @inject IOptions<OpenAiOption> _options
+@inject HotKeys HotKeys
 
 @* デバッグモード *@
 <DebugPanel IsVisible="_display != null && _format.IsDebugMode">
@@ -64,22 +67,32 @@ else if (_display == null)
 @* TODO:チャット入力欄をこっちに出す。キーボードショートカットに対応させるために。 *@
 @if (false)  // TODO:入力可
 {
-    // TODO:この↓IsSubmitted要らないかも。非表示で。いや、出したり消したりの方が鬱陶しいか。
-    <InputChatPanel IsSubmitted="IsSubmitted" OnClickCallback="SubmitSessionAsync"></InputChatPanel>
+    <InputChatPanel IsSubmitted="IsSubmitted" OnClickCallback="SubmitSessionAsync" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText"></InputChatPanel>
 }
 
 
 <div class="my-5"></div>
 
 @code {
+    /// <summary>
+    /// 画面情報のキー
+    /// </summary>
     [Parameter]
     public string? Pagedata { get; set; }
+
+    // サーバから取得した画面情報
+    private Display? _display;
 
     // デバッグモード用
     public bool IsCollapsed { get; set; } = true;
 
-    private Display? _display;
+    // ホットキーの設定
+    HotKeysContext HotKeysContext = null!;
+
+    // 初期化完了
     private bool isLoaded = false;
+
+    // 設定項目がある場合
     private bool isSubmittedOptions = false;
     private bool IsRequiredInputOption { get => _display != null && _display.Options.Count > 0 && !isSubmittedOptions; }
 
@@ -88,11 +101,11 @@ else if (_display == null)
     /// <summary>今までのセッション</summary>
     private List<TrpgSession> backlogs = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-    }
-
+    /// <summary>
+    /// JSはここでしか読み込めない
+    /// </summary>
+    /// <param name="firstRender"></param>
+    /// <returns></returns>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_jsModule == null) _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Trpg.razor.js");
@@ -108,6 +121,13 @@ else if (_display == null)
         IsCollapsed = true;
         backlogs.Clear();
         base.OnParametersSet();
+
+        // ホットキーの設定
+        // デフォルトでは入力欄にフォーカスしているとキーを効かなく設定しているので、Exclude.Noneで解除する
+        HotKeysContext = this.HotKeys.CreateContext()
+          .Add(ModCode.Ctrl, Code.Enter, RequestContinue, "続きを頼む", exclude: Exclude.None)
+          .Add(ModCode.Ctrl | ModCode.Shift, Code.Enter, Back, "1回戻す", exclude: Exclude.None)
+          .Add(ModCode.Shift, Code.Enter, Submit, "送信", exclude: Exclude.None);
 
         // パラメータ違いの同じ画面に遷移した場合は、OnInitializedが実行されず、ここが実行されるので注意。
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
@@ -214,6 +234,24 @@ else if (_display == null)
         //{
         //    OnSubmitFinished.Invoke();
         //}
+    }
+
+    public void Dispose()
+    {
+        this.HotKeysContext.Dispose();
+    }
+
+    /// <summary>送信:Shift+Enter</summary>
+    void Submit()
+    {
+    }
+    /// <summary>続きを頼む:Ctrl+Enter</summary>
+    void RequestContinue()
+    {
+    }
+    /// <summary>1回戻す:Ctrl+Shift+Enter</summary>
+    void Back()
+    {
     }
 }
 
