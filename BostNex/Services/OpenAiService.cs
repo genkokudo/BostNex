@@ -43,15 +43,16 @@ namespace BostNex.Services
         public List<ChatMessage> ChatLog { get; }
 
         /// <summary>
-        /// 最後に発生したエラー
-        /// </summary>
-        public string LastError { get; }
-
-        /// <summary>
         /// 現在の画面データ
         /// プロンプトもここに格納
         /// </summary>
         public Display CurrentDisplay { get; }
+
+        /// <summary>
+        /// ChatGPTからの返答をログに登録する。
+        /// </summary>
+        /// <param name="aiMessage"></param>
+        public void AddAiChatLog(string aiMessage);
     }
 
     public class OpenAiService : IOpenAiService
@@ -59,7 +60,6 @@ namespace BostNex.Services
         private readonly OpenAIClient _api;
         private readonly OpenAiOption _options;
 
-        public string LastError { get; set; } = string.Empty;
         public Display CurrentDisplay { get => currentDisplay; }
 
         /// <summary>
@@ -105,57 +105,51 @@ namespace BostNex.Services
 
         public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
         {
-            _chatLogs.Add(new ChatMessage(ChatRole.User, input));                   // チャットログってUserとAssistantとセットで入れた方が良いと思う。
-            var allChat = GetAllChat();
+            // ユーザの入力をログに追加
+            _chatLogs.Add(new ChatMessage(ChatRole.User, input));
 
-            // リクエストの作成。設定項目と、今までの会話ログをセット
-            var chatCompletionsOptions = new ChatCompletionsOptions()
+            // 返事を貰うか、原因が分からないエラーが来るまで実行
+            Response<StreamingChatCompletions> response = null!;
+            var count = 0; 
+            while (response == null)
             {
-                MaxTokens = _options.MaxTokens,
-            };
-            chatCompletionsOptions.Messages.AddRange(allChat);
-
-            // 送信
-            Response<StreamingChatCompletions> response;
-            try
-            {
-                response = await _api.GetChatCompletionsStreamingAsync(
-                            deploymentOrModelName: "gpt-3.5-turbo", 
-                            chatCompletionsOptions);
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains("maximum context length"))
+                try
                 {
-                    // トークン数の上限を超えたので、ログを1個消して再送が良さそう
-                    LastError = ex.Message + $"_skipLogs:{_skipLogs}に2を加えます";
-                    _skipLogs += 2;
-                    try
+                    // リクエストの作成。設定項目と、今までの会話ログをセット
+                    var allChat = GetAllChat();
+                    var chatCompletionsOptions = new ChatCompletionsOptions()
                     {
-                        chatCompletionsOptions = new ChatCompletionsOptions()
-                        {
-                            MaxTokens = _options.MaxTokens,
-                        };
-                        chatCompletionsOptions.Messages.AddRange(allChat);
+                        MaxTokens = _options.MaxTokens,
+                    };
+                    chatCompletionsOptions.Messages.AddRange(allChat);
 
-                        response = await _api.GetChatCompletionsStreamingAsync(
-                                    deploymentOrModelName: "gpt-3.5-turbo",
-                                    chatCompletionsOptions);
+                    // 送信
+                    response = await _api.GetChatCompletionsStreamingAsync(
+                                deploymentOrModelName: "gpt-3.5-turbo",         // gpt-3.5-turbo, gpt-4, gpt-4-0314
+                                chatCompletionsOptions);
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("maximum context length"))
+                    {
+                        // トークン数の上限を超えたので、ログを1個消して再送が良さそう
+                        _skipLogs += 2;
+                        count++;
+                        if (count > 4)
+                        {
+                            // ユーザの入力を削除して中断
+                            _chatLogs.RemoveAt(_chatLogs.Count - 1);
+                            throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。"); // どうすればいいんだろう。ソース書いて貰う時とか困るよね。
+                        }
+                        continue;
                     }
-                    catch (Exception ex2)
+                    else
                     {
                         // 原因不明のエラー
+                        // ユーザの入力を削除して中断
                         _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                        LastError = "ex2:" + ex2.Message;
                         throw;
                     }
-                }
-                else
-                {
-                    // 原因不明のエラー
-                    _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                    LastError = "ex:" + ex.Message;
-                    throw;
                 }
             }
 
@@ -172,20 +166,21 @@ namespace BostNex.Services
                 Console.WriteLine();
             }
 
-            //// 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
-            //var aiMessage = result.FirstChoice.Message.Content.Replace("\r\n", "\n").Replace("\n", "\r\n");
+            // 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
             var aiMessage =
                 sb.ToString()
                 .Replace("\r\n", "\n")
                 .Replace("\n", "\r\n");
 
             // チャットログに追加
-            _chatLogs.Add(new ChatMessage(ChatRole.Assistant.ToString(), aiMessage));                       // クライアントで受け取るので、追加用メソッドを作ってクライアントから送る。
-
-            // エラーを画面に表示
-            LastError = string.Empty;
+            AddAiChatLog(aiMessage);
 
             return aiMessage;
+        }
+
+        public void AddAiChatLog(string aiMessage)
+        {
+            _chatLogs.Add(new ChatMessage(ChatRole.Assistant, aiMessage));
         }
         
         /// <summary>

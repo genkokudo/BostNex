@@ -6,4 +6,8 @@ export function gotoBottom() {
 
     // 垂直方向へ移動
     window.scroll(0, bottom);
+
+    // 入力欄にフォーカスを当てる
+    document.getElementById("chatInput").focus();
 }
+

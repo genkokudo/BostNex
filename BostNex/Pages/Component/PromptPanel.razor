@@ -6,7 +6,7 @@
 <div class="mb-3">
     @ChildContent
     <InputTextArea class="form-control mb-3" @oninput="OnInput" @bind-Value="Text" rows="@Rows" />
-    <button class="btn btn-danger" @onclick="OnButtonClicked" disabled="@IsDisableButton">リセット</button>
+    <button class="btn btn-danger" @onclick="OnButtonClickedAsync" disabled="@IsDisableButton">リセット</button>
 </div>
 
 @code {

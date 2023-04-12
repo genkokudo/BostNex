@@ -30,7 +30,7 @@
 
 <PageTitle>@(_display?.Title ?? "Loading")</PageTitle>
 
-@if (!isLoaded)
+@if (!_isLoaded)
 {
     <div class="spinner-border text-primary">
         <span class="visually-hidden">Loading...</span>
@@ -59,17 +59,17 @@ else if (_display == null)
     var currentChat = _openAi.ChatLog.Where(x => x.Role == ChatRole.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
-        //  物語の進行ごとに、繰り返して表示する
-        <TrpgSessionPanel Session="log" OnSubmitFinished="() => NextSession()" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText" CurrentChat="currentChat" />
+        if (!log.IsDisposed)
+        {
+            // 破棄判定
+            log.IsDisposed = !currentChat.Contains(log.AiResponse);
+        }
+        //  会話の進行ごとに、繰り返して表示する
+        <TrpgSessionPanel Session="log" />
     }
 }
 
-@* TODO:チャット入力欄をこっちに出す。キーボードショートカットに対応させるために。 *@
-@if (false)  // TODO:入力可
-{
-    <InputChatPanel IsSubmitted="IsSubmitted" OnClickCallback="SubmitSessionAsync" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText"></InputChatPanel>
-}
-
+<InputChatPanel @ref="_inputChatPanel" Error="@_error" IsSubmitted="IsSubmitted" OnClickCallback="SubmitSessionAsync" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText"></InputChatPanel>
 
 <div class="my-5"></div>
 
@@ -80,6 +80,9 @@ else if (_display == null)
     [Parameter]
     public string? Pagedata { get; set; }
 
+    // 入力欄
+    InputChatPanel? _inputChatPanel = null!;    // コンポーネントの独立性を保ちつつホットキー対応させるため、refにする。
+
     // サーバから取得した画面情報
     private Display? _display;
 
@@ -87,14 +90,17 @@ else if (_display == null)
     public bool IsCollapsed { get; set; } = true;
 
     // ホットキーの設定
-    HotKeysContext HotKeysContext = null!;
+    HotKeysContext _hotKeysContext = null!;
+
+    // エラーを表示する
+    private string _error = string.Empty;
 
     // 初期化完了
-    private bool isLoaded = false;
+    private bool _isLoaded = false;
 
     // 設定項目がある場合
-    private bool isSubmittedOptions = false;
-    private bool IsRequiredInputOption { get => _display != null && _display.Options.Count > 0 && !isSubmittedOptions; }
+    private bool _isSubmittedOptions = false;
+    private bool IsRequiredInputOption { get => _display != null && _display.Options.Count > 0 && !_isSubmittedOptions; }
 
     private IJSObjectReference? _jsModule = null!;
 
@@ -115,35 +121,33 @@ else if (_display == null)
     protected override void OnParametersSet()
     {
         // 初期化
-        isLoaded = false;
+        _isLoaded = false;
         _display = null;
-        isSubmittedOptions = false;
+        _isSubmittedOptions = false;
         IsCollapsed = true;
         backlogs.Clear();
         base.OnParametersSet();
+        _error = string.Empty;
 
         // ホットキーの設定
         // デフォルトでは入力欄にフォーカスしているとキーを効かなく設定しているので、Exclude.Noneで解除する
-        HotKeysContext = this.HotKeys.CreateContext()
-          .Add(ModCode.Ctrl, Code.Enter, RequestContinue, "続きを頼む", exclude: Exclude.None)
+        _hotKeysContext = this.HotKeys.CreateContext()
+          .Add(ModCode.Alt, Code.Enter, RequestContinueAsync, "続きを頼む", exclude: Exclude.None)
           .Add(ModCode.Ctrl | ModCode.Shift, Code.Enter, Back, "1回戻す", exclude: Exclude.None)
-          .Add(ModCode.Shift, Code.Enter, Submit, "送信", exclude: Exclude.None);
+          .Add(ModCode.Shift, Code.Enter, SubmitAsync, "送信", exclude: Exclude.None);
 
         // パラメータ違いの同じ画面に遷移した場合は、OnInitializedが実行されず、ここが実行されるので注意。
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
-            // 人格をセット
+            // プロンプトをセット
             _openAi.InitializeChat(_display);
-
-            // 入力欄を作成
-            backlogs.Add(new TrpgSession());
         }
         else
         {
             // 指定されたデータが見つからなかった時
             _display = null;
         }
-        isLoaded = true;
+        _isLoaded = true;
         base.OnParametersSet();
     }
 
@@ -152,28 +156,13 @@ else if (_display == null)
     /// </summary>
     private void SubmitOption()
     {
-        isSubmittedOptions = true;
+        _isSubmittedOptions = true;
         _openAi.InitializeChat(_display!);
         StateHasChanged();
     }
 
-    /// <summary>
-    /// 子コンポーネントでAIメッセージを受信し終わった時の処理
-    /// 終了判定
-    /// 次のセッションを作成
-    /// </summary>
-    private async void NextSession()
-    {
-        backlogs.Add(new TrpgSession());
-        StateHasChanged();
-        if (_jsModule != null)
-        {
-            await _jsModule.InvokeVoidAsync("gotoBottom");
-        }
-    }
-
-
     public string ResetPromptText { get; set; } = string.Empty;
+
     /// <summary>
     /// 開発用
     /// プロンプトを入力されたものに差し替えて再スタート
@@ -182,76 +171,74 @@ else if (_display == null)
     {
         _openAi.InitializeChat(text);
         backlogs.Clear();
-        backlogs.Add(new TrpgSession());
         StateHasChanged();
     }
 
-
-    // 今は、各Sessionが送信状態を持っているが、テキストを受け取って初めてSessionを作成するように変更。
-    // ただし、エラー発生時は送信前に戻さなければならない。
-    // 送信中：Sessionを作成してセッションログに追加
-    // エラー発生時：セッションログの最後を消す
-
     /// <summary>
     /// 送信ボタンを押したらtrue、ボタンの制御に使用
+    /// 送信しても良い時はfalse
     /// <summary>
     public bool IsSubmitted { get; set; } = false;
-    // TODO:TrpgSessionクラスからIsSubmittedは削除。
 
     /// <summary>
     /// 入力したテキストを送信する
+    /// 送信ボタンをクリックするとこれが呼ばれる
     /// </summary>
     /// <returns></returns>
     private async Task SubmitSessionAsync(string input)
     {
-        if (IsSubmitted)
-        {
-            return;
-        }
+        if (IsSubmitted) return;
 
         IsSubmitted = true;
+        _error = string.Empty;
 
         try
         {
             //new TrpgSession() はこのタイミングで行って、後でストリーミング受信するように変更する。
             var response = await _openAi.GetNextSessionAsync(input);
-            //Session.AiResponse = response;
             backlogs.Add(new TrpgSession { Text = input, AiResponse = response });
             IsSubmitted = false;
+            StateHasChanged();
+
+            // 画面表示を下に。
+            if (_jsModule != null)
+            {
+                await _jsModule.InvokeVoidAsync("gotoBottom");
+            }
+            // 入力欄のクリア。
+            _inputChatPanel!.SetText(string.Empty);
         }
-        catch
+        catch(Exception e)
         {
+            // 原因不明のエラーの場合
             IsSubmitted = false;
-            //_isError = true;
+            _error = _format.IsDebugMode ? e.Message : "APIへの送信に失敗したのでもう一回送信してください";
             return;
         }
 
-        //// 終わったらバインド元に反映する
-        //await SessionChanged.InvokeAsync(Session);
-
-        //// セッションを進めることを親に伝える。
-        //if (OnSubmitFinished != null)
-        //{
-        //    OnSubmitFinished.Invoke();
-        //}
     }
 
     public void Dispose()
     {
-        this.HotKeysContext.Dispose();
+        this._hotKeysContext.Dispose();
     }
 
     /// <summary>送信:Shift+Enter</summary>
-    void Submit()
+    private async void SubmitAsync()
     {
+        if (IsSubmitted) return;
+        await _inputChatPanel!.SubmitAsync();
     }
     /// <summary>続きを頼む:Ctrl+Enter</summary>
-    void RequestContinue()
+    private async void RequestContinueAsync()
     {
+        if (IsSubmitted) return;
+        await _inputChatPanel!.RequestContinueAsync();
     }
     /// <summary>1回戻す:Ctrl+Shift+Enter</summary>
-    void Back()
+    private void Back()
     {
+        if (IsSubmitted) return;
     }
 }
 

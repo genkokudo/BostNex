@@ -4,20 +4,17 @@
 *@
 @inherits InputBase
 
-<InputTextArea class="form-control" @oninput="OnInput" @bind-Value="Text" placeholder="@Placeholder" rows="@Rows" />
+<InputTextArea id="chatInput" class="form-control" @oninput="OnInput" @bind-Value="Text" placeholder="@Placeholder" rows="@Rows" disabled="@IsSubmitted" />
 <div class="col-4">
-    <button class="mt-3 btn btn-primary" @onclick="OnButtonClicked" disabled="@IsDisableButton">@SubmitText</button>
-    <button class="mt-3 ms-5 btn btn-primary" @onclick="RequestContinue" disabled="@IsSubmitted">続きを要求する</button>
+    <button class="mt-3 btn btn-primary" @onclick="SubmitAsync" disabled="@(IsDisableButton || IsSubmitted)">@SubmitText (Shift + Enter)</button>
+    <button class="mt-3 ms-5 btn btn-primary" @onclick="RequestContinueAsync" disabled="@IsSubmitted">続きを要求する (Alt + Enter)</button>
 </div>
-@if (_isError)
+@if (!string.IsNullOrWhiteSpace(Error))
 {
-    <p class="text-danger">APIへの送信に失敗したのでもう一回送信してください</p>
+    <p class="text-danger">@Error</p>
 }
 
 @code {
-
-    // TODO:TrpgSessionPanel.razorから取ってくること
-
     /// <summary>入力例</summary>
     [Parameter]
     public string Placeholder { get; set; } = "質問を入力してください。";
@@ -32,13 +29,23 @@
     /// <summary>
     /// エラーが出たら表示し、ユーザーに再送を促す
     /// </summary>
-    private bool _isError = false;
+    [Parameter]
+    public string Error { get; set; } = string.Empty;
 
     /// <summary>
-    /// 続きを要求するボタン
+    /// 送信ボタン処理
     /// </summary>
     /// <returns></returns>
-    private async Task RequestContinue()
+    public async Task SubmitAsync()
+    {
+        await OnButtonClickedAsync();
+    }
+
+    /// <summary>
+    /// 続きを要求するボタン処理
+    /// </summary>
+    /// <returns></returns>
+    public async Task RequestContinueAsync()
     {
         if (IsSubmitted)
         {
@@ -46,6 +53,16 @@
         }
         Text = "続きを書いて";
 
-        await OnButtonClicked();    // 送信ボタンと同じ処理
+        await OnButtonClickedAsync();    // 送信ボタンと同じ処理
+    }
+
+    /// <summary>
+    /// テキストをセットする
+    /// </summary>
+    /// <returns></returns>
+    public void SetText(string text)
+    {
+        Text = text;
+        Rows = Math.Max(3, Text.Length - Text.Replace("\n", "").Length + 1);
     }
 }

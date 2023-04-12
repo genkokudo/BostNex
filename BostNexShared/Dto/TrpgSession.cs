@@ -22,10 +22,8 @@ namespace BostNexShared.Dto
         public string AiResponse { get; set; } = string.Empty;
 
         /// <summary>
-        /// 送信ボタンを押したらtrue
-        /// （遷移した時の画面のリフレッシュに必要）
-        /// 以降はこのセッションに書き込めなくする。
+        /// 古くなってAPI送信対象から外れていたらtrue
         /// </summary>
-        public bool IsSubmitted = false;                    // TODO:これは削除。ただし、ストリーミングで受け取る仕組みを追加するかも
+        public bool IsDisposed = false;
     }
 }

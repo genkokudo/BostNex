@@ -183,6 +183,7 @@ namespace BostNex.Services
         /// マスター扱い。上書きとかしないこと（開発モードは別）
         /// </summary>
         public List<ChatMessage> MasterPrompt { get; set; } = new();
+
         /// <summary>これがfalseの場合、"IsLocalDevelopMode": falseならば表示しない</summary>
         public bool IsPublic { get; set; } = true;
 
