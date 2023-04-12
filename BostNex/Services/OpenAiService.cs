@@ -1,13 +1,7 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
-using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace BostNex.Services
 {
@@ -34,7 +28,7 @@ namespace BostNex.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns>AIからの返答</returns>
-        public Task<string> GetNextSessionAsync(string input, double temperature = 1.0);
+        public Task<StreamingChatCompletions> GetNextSessionAsync(string input);
 
         /// <summary>
         /// 今までのチャットログを取得する
@@ -103,14 +97,15 @@ namespace BostNex.Services
             _chatLogs.Clear();
         }
 
-        public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
+
+        public async Task<StreamingChatCompletions> GetNextSessionAsync(string input)
         {
             // ユーザの入力をログに追加
             _chatLogs.Add(new ChatMessage(ChatRole.User, input));
 
             // 返事を貰うか、原因が分からないエラーが来るまで実行
             Response<StreamingChatCompletions> response = null!;
-            var count = 0; 
+            var count = 0;
             while (response == null)
             {
                 try
@@ -154,29 +149,80 @@ namespace BostNex.Services
             }
 
             // ストリーミングで受け取る
-            var sb = new StringBuilder();
-            using StreamingChatCompletions streamingChatCompletions = response.Value;
-            await foreach (StreamingChatChoice choice in streamingChatCompletions.GetChoicesStreaming())    // こっちを返した方が良いかな？
-            {
-                await foreach (ChatMessage message in choice.GetMessageStreaming())                         // わからん。StringBuilderじゃなくてこれを返したいんだけど。改行はクライアント側で\nだけBRに置換
-                {
-                    Console.Write(message.Content);
-                    sb.Append(message.Content);
-                }
-                Console.WriteLine();
-            }
-
-            // 改行コードが"\n"で送られてくるが、仕様変更があるかもしれないので\r\nに変換しておく
-            var aiMessage =
-                sb.ToString()
-                .Replace("\r\n", "\n")
-                .Replace("\n", "\r\n");
-
-            // チャットログに追加
-            AddAiChatLog(aiMessage);
-
-            return aiMessage;
+            return response.Value;
         }
+
+        //public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
+        //{
+        //    // ユーザの入力をログに追加
+        //    _chatLogs.Add(new ChatMessage(ChatRole.User, input));
+
+        //    // 返事を貰うか、原因が分からないエラーが来るまで実行
+        //    Response<StreamingChatCompletions> response = null!;
+        //    var count = 0; 
+        //    while (response == null)
+        //    {
+        //        try
+        //        {
+        //            // リクエストの作成。設定項目と、今までの会話ログをセット
+        //            var allChat = GetAllChat();
+        //            var chatCompletionsOptions = new ChatCompletionsOptions()
+        //            {
+        //                MaxTokens = _options.MaxTokens,
+        //            };
+        //            chatCompletionsOptions.Messages.AddRange(allChat);
+
+        //            // 送信
+        //            response = await _api.GetChatCompletionsStreamingAsync(
+        //                        deploymentOrModelName: "gpt-3.5-turbo",         // gpt-3.5-turbo, gpt-4, gpt-4-0314
+        //                        chatCompletionsOptions);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            if (ex.Message.Contains("maximum context length"))
+        //            {
+        //                // トークン数の上限を超えたので、ログを1個消して再送が良さそう
+        //                _skipLogs += 2;
+        //                count++;
+        //                if (count > 4)
+        //                {
+        //                    // ユーザの入力を削除して中断
+        //                    _chatLogs.RemoveAt(_chatLogs.Count - 1);
+        //                    throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。"); // どうすればいいんだろう。ソース書いて貰う時とか困るよね。
+        //                }
+        //                continue;
+        //            }
+        //            else
+        //            {
+        //                // 原因不明のエラー
+        //                // ユーザの入力を削除して中断
+        //                _chatLogs.RemoveAt(_chatLogs.Count - 1);
+        //                throw;
+        //            }
+        //        }
+        //    }
+
+        //    // ストリーミングで受け取る
+        //    var sb = new StringBuilder();
+        //    using StreamingChatCompletions streamingChatCompletions = response.Value;
+        //    await foreach (StreamingChatChoice choice in streamingChatCompletions.GetChoicesStreaming())    // こっちを返した方が良いかな？
+        //    {
+        //        await foreach (ChatMessage message in choice.GetMessageStreaming())                         // わからん。StringBuilderじゃなくてこれを返したいんだけど。改行はクライアント側で\nだけBRに置換
+        //        {
+        //            Console.Write(message.Content);
+        //            sb.Append(message.Content);
+        //        }
+        //        Console.WriteLine();
+        //    }
+
+        //    var aiMessage =
+        //        sb.ToString();
+
+        //    // チャットログに追加
+        //    AddAiChatLog(aiMessage);
+
+        //    return aiMessage;
+        //}
 
         public void AddAiChatLog(string aiMessage)
         {

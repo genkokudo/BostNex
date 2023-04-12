@@ -1,13 +1,7 @@
 ﻿using Azure.AI.OpenAI;
-using Azure.Core;
-using BostNex.Pages;
 using Humanizer;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
-using System.Text;
 
 namespace BostNex.Services
 {

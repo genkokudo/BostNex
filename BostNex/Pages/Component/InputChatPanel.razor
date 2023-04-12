@@ -38,6 +38,7 @@
     /// <returns></returns>
     public async Task SubmitAsync()
     {
+        if (IsDisableButton || IsSubmitted) return;
         await OnButtonClickedAsync();
     }
 
@@ -47,10 +48,7 @@
     /// <returns></returns>
     public async Task RequestContinueAsync()
     {
-        if (IsSubmitted)
-        {
-            return;
-        }
+        if (IsSubmitted) return;
         Text = "続きを書いて";
 
         await OnButtonClickedAsync();    // 送信ボタンと同じ処理

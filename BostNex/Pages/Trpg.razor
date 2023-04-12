@@ -59,16 +59,17 @@ else if (_display == null)
     var currentChat = _openAi.ChatLog.Where(x => x.Role == ChatRole.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
-        if (!log.IsDisposed)
+        if (!log.IsDisposed && log.StreamingResponse == null)
         {
             // 破棄判定
             log.IsDisposed = !currentChat.Contains(log.AiResponse);
         }
         //  会話の進行ごとに、繰り返して表示する
-        <TrpgSessionPanel Session="log" />
+        <TrpgSessionPanel Session="log" OnStreamFinished="OnStreamFinished" />
     }
 }
 
+@* 入力欄 *@
 <InputChatPanel @ref="_inputChatPanel" Error="@_error" IsSubmitted="IsSubmitted" OnClickCallback="SubmitSessionAsync" Placeholder="@_display.Placeholder" SubmitText="@_display.SubmitText"></InputChatPanel>
 
 <div class="my-5"></div>
@@ -196,15 +197,12 @@ else if (_display == null)
         {
             //new TrpgSession() はこのタイミングで行って、後でストリーミング受信するように変更する。
             var response = await _openAi.GetNextSessionAsync(input);
-            backlogs.Add(new TrpgSession { Text = input, AiResponse = response });
+            backlogs.Add(new TrpgSession { Text = input, StreamingResponse = response });
             IsSubmitted = false;
             StateHasChanged();
 
             // 画面表示を下に。
-            if (_jsModule != null)
-            {
-                await _jsModule.InvokeVoidAsync("gotoBottom");
-            }
+            await GotoBottomAsync();
             // 入力欄のクリア。
             _inputChatPanel!.SetText(string.Empty);
         }
@@ -218,6 +216,18 @@ else if (_display == null)
 
     }
 
+    /// <summary>
+    /// 画面表示を一番下までスクロールする
+    /// </summary>
+    /// <returns></returns>
+    public async Task GotoBottomAsync()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("gotoBottom");
+        }
+    }
+
     public void Dispose()
     {
         this._hotKeysContext.Dispose();
@@ -229,7 +239,7 @@ else if (_display == null)
         if (IsSubmitted) return;
         await _inputChatPanel!.SubmitAsync();
     }
-    /// <summary>続きを頼む:Ctrl+Enter</summary>
+    /// <summary>続きを頼む:Alt+Enter</summary>
     private async void RequestContinueAsync()
     {
         if (IsSubmitted) return;
@@ -239,6 +249,14 @@ else if (_display == null)
     private void Back()
     {
         if (IsSubmitted) return;
+    }
+
+    /// <summary>
+    /// 各チャット表示でストリーミングが終わった時の処理
+    /// </summary>
+    private async void OnStreamFinished()
+    {
+        await GotoBottomAsync();
     }
 }
 

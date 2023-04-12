@@ -1,8 +1,4 @@
 ﻿@* ChatGPTとのやり取り1回分を表すコンポーネント *@
-@* 
-    データの大元は親が持ってないと何かと不便。
-    データの元を子コンポーネントに持たせることはできるけど、後で親で集計する時などに結構不便だと思うのでやめておく。
-*@
 @using BostNex.Services
 @using BostNexShared.Dto
 @inject IOpenAiService _openAi
@@ -40,4 +36,34 @@
     [Parameter]
     [EditorRequired]
     public TrpgSession Session { get; set; } = null!;
+
+    /// <summary>
+    /// ストリーミングが終わった時の処理
+    /// </summary>
+    [Parameter]
+    public Action OnStreamFinished { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Session == null)throw new ArgumentNullException(nameof(Session));
+        if (Session.StreamingResponse == null) return;
+
+        // ストリーミングで受け取る
+        await foreach (var choice in Session.StreamingResponse.GetChoicesStreaming())
+        {
+            await foreach (var message in choice.GetMessageStreaming())
+            {
+                Session.AiResponse += message.Content;
+                StateHasChanged();
+            }
+        }
+        // 終わったら登録
+        Session.StreamingResponse = null!;
+        _openAi.AddAiChatLog(Session.AiResponse);
+
+        // 終わった時の処理
+        OnStreamFinished?.Invoke();
+
+        await base.OnInitializedAsync();
+    }
 }
