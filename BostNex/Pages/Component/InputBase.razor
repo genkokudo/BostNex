@@ -22,6 +22,8 @@
     [Parameter]
     public EventCallback<string> TextChanged { get; set; }
 
+    protected string _text = string.Empty; // OnInputで随時反映する。ボタン活性判定に使う。
+
     /// <summary>
     /// 入力している行数
     /// 最小は3
@@ -32,7 +34,7 @@
     /// ボタン無効
     /// テキスト未入力ならばボタンを非活性にする。
     /// </summary>
-    protected bool IsDisableButton => string.IsNullOrWhiteSpace(Text);
+    protected bool IsDisableButton => string.IsNullOrWhiteSpace(_text);
 
     /// <summary>
     /// 入力ごとに実行
@@ -40,8 +42,8 @@
     /// </summary>
     protected void OnInput(ChangeEventArgs e)
     {
-        Text = e.Value!.ToString()!;
-        Rows = Math.Max(3, Text.Length - Text.Replace("\n", "").Length + 1);
+        _text = e.Value!.ToString()!;
+        Rows = Math.Max(3, _text.Length - _text.Replace("\n", "").Length + 1);
     }
 
     /// <summary>

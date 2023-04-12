@@ -38,6 +38,7 @@
     /// <returns></returns>
     public async Task SubmitAsync()
     {
+        Text = _text;
         if (IsDisableButton || IsSubmitted) return;
         await OnButtonClickedAsync();
     }
@@ -50,6 +51,7 @@
     {
         if (IsSubmitted) return;
         Text = "続きを書いて";
+        _text = "続きを書いて";
 
         await OnButtonClickedAsync();    // 送信ボタンと同じ処理
     }
@@ -60,6 +62,7 @@
     /// <returns></returns>
     public void SetText(string text)
     {
+        _text = text;
         Text = text;
         Rows = Math.Max(3, Text.Length - Text.Replace("\n", "").Length + 1);
     }
