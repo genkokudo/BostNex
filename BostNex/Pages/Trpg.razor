@@ -51,7 +51,7 @@ else if (_display == null)
 }
 
 <h1>@_display.Headline</h1>
-<p><em>@_display.Introduction</em></p>
+<p><em>@((MarkupString)_display.Introduction.Replace("\r\n", "<br />").Replace("\n", "<br />"))</em></p>
 
 @* セッションの表示 *@
 @{

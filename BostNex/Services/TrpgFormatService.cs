@@ -45,17 +45,6 @@ namespace BostNex.Services
                 MasterPrompt = _trpg.DefaultPrompt,
                 IsPublic = false
             });
-            _pageData.Add("Trpg", new Display
-            {
-                Address = "Trpg",
-                Title = "TRPG",
-                Headline = "TRPG",
-                Introduction = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
-                Placeholder = "あなたの行動",
-                SubmitText = "行くぜ！",
-                MasterPrompt = _trpg.RoBot,
-                IsPublic = false
-            });
             _pageData.Add("Ojisan", new Display
             {
                 Address = "Ojisan",
@@ -68,13 +57,19 @@ namespace BostNex.Services
                 Options = new List<DisplayOption> { new DisplayOption() },   // 名前入力
                 IsPublic = true
             });
-            _pageData.Add("Tsunko", new Display { MasterPrompt = _trpg.Tsunko, Title = "ツン子", Address = "Tsunko", Headline = "ツン子とお話しよう！" });
+            _pageData.Add("Tsunko", new Display
+            {
+                MasterPrompt = _trpg.Tsunko,
+                Title = "ツン子",
+                Address = "Tsunko",
+                Headline = "ツン子とお話しよう！"
+            });
             _pageData.Add("DonpenKarma", new Display
             {
                 Address = "DonpenKarma",
                 Title = "魔王（兄）",
                 Headline = "魔王（兄）",
-                Introduction = "ここはよくある普通の剣と魔法のファンタジーRPGの世界。物語はここから始まる。",
+                Introduction = "人間を鹿金することを目指す冷酷非情な魔王。\r\n戦って勝利を目指すか、服従して一緒に世界を征服してください。\r\n名前は「ドンペン・カルマ」です。\r\n容姿設定はありません。（他のキャラもそう）",
                 Placeholder = "ここがあの魔王のHouseね",
                 SubmitText = "発言する",
                 MasterPrompt = _trpg.DonpenKarma,
@@ -85,7 +80,7 @@ namespace BostNex.Services
                 Address = "PrankDaemon",
                 Title = "魔王（弟）",
                 Headline = "魔王（弟）",
-                Introduction = "人間と勝負するのが好きな魔王",
+                Introduction = "人間を玩具にすることを目指す好戦的な魔王。\r\n戦いを挑んでルールを説明すると、その通りに勝負してくれます。\r\n名前は「プランク・デーモン」です。\r\nよく主語を間違えるのでスルーしてください。",
                 Placeholder = "勝負を挑もう！",
                 SubmitText = "闘う",
                 MasterPrompt = _trpg.PrankDaemon,
@@ -96,7 +91,7 @@ namespace BostNex.Services
                 Address = "FemaleOverLoad",
                 Title = "魔王♀",
                 Headline = "魔王♀",
-                Introduction = "500年間封印され続けた古の大魔王。今その封印が解かれようとしている！？",
+                Introduction = "500年間封印され続けた古の大魔王。今その封印が解かれようとしている！？\r\n名前は「翠闇（すいあん）」です。\r\n封印を解いてあげるとかしてください。",
                 Placeholder = "女魔王とお話する",
                 SubmitText = "発言する",
                 MasterPrompt = _trpg.FemaleOverLoad,
@@ -109,7 +104,6 @@ namespace BostNex.Services
                 Headline = "ヤン子",
                 Introduction = "ヤ、ヤン子…",
                 Placeholder = "ヤン子とお話する",
-                SubmitText = "送信",
                 MasterPrompt = _trpg.Yanko,
                 IsPublic = true
             });
@@ -118,22 +112,31 @@ namespace BostNex.Services
                 Address = "Geed",
                 Title = "獣人♂",
                 Headline = "獣人♂",
-                Introduction = "人間は獣人に服従すべき脆弱な種族だ",
+                Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
                 Placeholder = "ジードとお話する",
-                SubmitText = "送信",
                 MasterPrompt = _trpg.Geed,
                 IsPublic = true
             });
-            _pageData.Add("Test", new Display
+            _pageData.Add("Giant", new Display
             {
-                Address = "Test",
-                Title = "Test",
-                Headline = "Test",
-                Introduction = "Test",
-                Placeholder = "aaaa",
-                SubmitText = "送信",
-                MasterPrompt = _trpg.Test,
-                IsPublic = false
+                Address = "Giant",
+                Title = "巨人♂",
+                Headline = "巨人♂",
+                Introduction = "巨人に支配された街で生き残ろう。\r\n怪しい男の名前は「オウガ」です。\r\n巨人は弱点がありますが、普通の方法ではなかなか勝てません。",
+                Placeholder = "こいつ怪しいなあ",
+                MasterPrompt = _trpg.Giant,
+                IsPublic = true
+            });
+            _pageData.Add("Villain", new Display
+            {
+                Address = "Villain",
+                Title = "怪人♂",
+                Headline = "怪人♂",
+                Introduction = "怪人の名前は「ザッハーク」です。\r\n怪人は周囲にある動植物を吸収して能力を手に入れます。\r\nあなたは必殺技や武器で怪人を倒してください。",
+                Placeholder = "怪人め、許さないぞ",
+                SubmitText = "闘う",
+                MasterPrompt = _trpg.Villain,
+                IsPublic = true
             });
 
             // 開発モードの場合
