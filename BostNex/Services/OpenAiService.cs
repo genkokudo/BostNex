@@ -51,17 +51,19 @@ namespace BostNex.Services
 
     public class OpenAiService : IOpenAiService
     {
-        private readonly OpenAIClient _api;
+        private readonly OpenAIClient _msApi;
+        private readonly OpenAIClient _openAiApi;
+        private OpenAIClient Api { get => CurrentDisplay.UseAzureOpenAI ? _msApi : _openAiApi; }
         private readonly OpenAiOption _options;
 
-        public Display CurrentDisplay { get => currentDisplay; }
+        public Display CurrentDisplay { get => _currentDisplay; }
 
         /// <summary>
         /// プロンプト含む全チャットログ
         /// </summary>
         public List<ChatMessage> ChatLog => GetAllChat();
 
-        private Display currentDisplay = null!;
+        private Display _currentDisplay = null!;
 
         /// <summary>
         /// 今までのチャットログ、プロンプトは含まない
@@ -78,10 +80,10 @@ namespace BostNex.Services
         public OpenAiService(IOptions<OpenAiOption> options)
         {
             _options = options.Value;
-            _api = _options.UseAzureOpenAI ? new OpenAIClient(
+            _msApi = new OpenAIClient(
                 new Uri(_options.AzureUri),
-                new AzureKeyCredential(_options.AzureApiKey))
-                : new OpenAIClient(_options.ApiKey);
+                new AzureKeyCredential(_options.AzureApiKey));
+            _openAiApi = new OpenAIClient(_options.ApiKey);
             InitializeChat();
         }
         
@@ -91,7 +93,7 @@ namespace BostNex.Services
             if (display != null)
             {
                 display.ApplyOption();
-                currentDisplay = display;
+                _currentDisplay = display;
             }
             _skipLogs = 0;
             _chatLogs.Clear();
@@ -114,13 +116,13 @@ namespace BostNex.Services
                     var allChat = GetAllChat();
                     var chatCompletionsOptions = new ChatCompletionsOptions()
                     {
-                        MaxTokens = _options.MaxTokens,
+                        MaxTokens = _currentDisplay.MaxTokens,
                     };
                     chatCompletionsOptions.Messages.AddRange(allChat);
 
                     // 送信
-                    response = await _api.GetChatCompletionsStreamingAsync(
-                                deploymentOrModelName: "gpt-3.5-turbo",         // gpt-3.5-turbo, gpt-4, gpt-4-0314
+                    response = await Api.GetChatCompletionsStreamingAsync(
+                                deploymentOrModelName: _currentDisplay.GptModel,
                                 chatCompletionsOptions);
                 }
                 catch (Exception ex)
@@ -152,78 +154,6 @@ namespace BostNex.Services
             return response.Value;
         }
 
-        //public async Task<string> GetNextSessionAsync(string input, double temperature = 1.0)
-        //{
-        //    // ユーザの入力をログに追加
-        //    _chatLogs.Add(new ChatMessage(ChatRole.User, input));
-
-        //    // 返事を貰うか、原因が分からないエラーが来るまで実行
-        //    Response<StreamingChatCompletions> response = null!;
-        //    var count = 0; 
-        //    while (response == null)
-        //    {
-        //        try
-        //        {
-        //            // リクエストの作成。設定項目と、今までの会話ログをセット
-        //            var allChat = GetAllChat();
-        //            var chatCompletionsOptions = new ChatCompletionsOptions()
-        //            {
-        //                MaxTokens = _options.MaxTokens,
-        //            };
-        //            chatCompletionsOptions.Messages.AddRange(allChat);
-
-        //            // 送信
-        //            response = await _api.GetChatCompletionsStreamingAsync(
-        //                        deploymentOrModelName: "gpt-3.5-turbo",         // gpt-3.5-turbo, gpt-4, gpt-4-0314
-        //                        chatCompletionsOptions);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            if (ex.Message.Contains("maximum context length"))
-        //            {
-        //                // トークン数の上限を超えたので、ログを1個消して再送が良さそう
-        //                _skipLogs += 2;
-        //                count++;
-        //                if (count > 4)
-        //                {
-        //                    // ユーザの入力を削除して中断
-        //                    _chatLogs.RemoveAt(_chatLogs.Count - 1);
-        //                    throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。"); // どうすればいいんだろう。ソース書いて貰う時とか困るよね。
-        //                }
-        //                continue;
-        //            }
-        //            else
-        //            {
-        //                // 原因不明のエラー
-        //                // ユーザの入力を削除して中断
-        //                _chatLogs.RemoveAt(_chatLogs.Count - 1);
-        //                throw;
-        //            }
-        //        }
-        //    }
-
-        //    // ストリーミングで受け取る
-        //    var sb = new StringBuilder();
-        //    using StreamingChatCompletions streamingChatCompletions = response.Value;
-        //    await foreach (StreamingChatChoice choice in streamingChatCompletions.GetChoicesStreaming())    // こっちを返した方が良いかな？
-        //    {
-        //        await foreach (ChatMessage message in choice.GetMessageStreaming())                         // わからん。StringBuilderじゃなくてこれを返したいんだけど。改行はクライアント側で\nだけBRに置換
-        //        {
-        //            Console.Write(message.Content);
-        //            sb.Append(message.Content);
-        //        }
-        //        Console.WriteLine();
-        //    }
-
-        //    var aiMessage =
-        //        sb.ToString();
-
-        //    // チャットログに追加
-        //    AddAiChatLog(aiMessage);
-
-        //    return aiMessage;
-        //}
-
         public void AddAiChatLog(string aiMessage)
         {
             _chatLogs.Add(new ChatMessage(ChatRole.Assistant, aiMessage));
@@ -237,7 +167,7 @@ namespace BostNex.Services
         private List<ChatMessage> GetAllChat()
         {
             var result = new List<ChatMessage>();
-            result.AddRange(currentDisplay.CurrentPrompt);
+            result.AddRange(_currentDisplay.CurrentPrompt);
             result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount) + _skipLogs));   //_chatLogsの件数を新しい方から指定件数取る
             return result;
         }
@@ -254,8 +184,8 @@ namespace BostNex.Services
                 role = result.Count == 0 ? ChatRole.System : role;
                 result.Add(new ChatMessage(role.ToString(), item));
             }
-            currentDisplay.MasterPrompt = result;
-            InitializeChat(currentDisplay);
+            _currentDisplay.MasterPrompt = result;
+            InitializeChat(_currentDisplay);
         }
     }
 
@@ -276,20 +206,11 @@ namespace BostNex.Services
         public int MaxChatLogCount { get; set; } = 10;
 
         /// <summary>
-        /// 返答のトークン上限を設定してトークン数を節約する。
-        /// </summary>
-        public int MaxTokens { get; set; } = 180;
-
-        /// <summary>
         /// 開発用
         /// プロンプトの区切りを示す文字列
         /// </summary>
         public string Separate { get; set; } = "#end#";
 
-        /// <summary>
-        /// Azureを使う
-        /// </summary>
-        public bool UseAzureOpenAI { get; set; } = false;
         /// <summary>
         /// AzureのAPIキー
         /// </summary>

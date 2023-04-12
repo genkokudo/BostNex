@@ -35,16 +35,94 @@ namespace BostNex.Services
             _options = options.Value;
 
             // 追加していくこと
-            _pageData.Add("Default", new Display {
-                Address = "Default",
-                Title = "デフォルトモデル",
-                Headline = "？？？？",
-                Introduction = "特に何もプロンプトを与えていません",
+            _pageData.Add("Openai3", new Display
+            {
+                Address = "Openai3",
+                Title = "OpenAI:gpt-3.5-turbo",
+                Headline = "OpenAI:gpt-3.5-turbo",
+                Introduction = "安い。基本的にこれを使うこと。",
                 Placeholder = "あなたの質問",
-                SubmitText = "送る",
                 MasterPrompt = _trpg.DefaultPrompt,
+                GptModel = "gpt-3.5-turbo",
                 IsPublic = false
             });
+            _pageData.Add("Openai4", new Display
+            {
+                Address = "Openai4",
+                Title = "OpenAI:gpt-4",
+                Headline = "OpenAI:gpt-4",
+                Introduction = "高い。基本的に使わないこと。",
+                Placeholder = "あなたの質問",
+                MasterPrompt = _trpg.DefaultPrompt,
+                GptModel = "gpt-4",
+                IsPublic = false,
+                MaxTokens = 2048
+            });
+            _pageData.Add("Openai4-0314", new Display
+            {
+                Address = "Openai4-0314",
+                Title = "OpenAI:gpt-4-0314",
+                Headline = "OpenAI:gpt-4-0314",
+                Introduction = "高い。基本的に使わないこと。",
+                Placeholder = "あなたの質問",
+                MasterPrompt = _trpg.DefaultPrompt,
+                GptModel = "gpt-4-0314",
+                IsPublic = false,
+                MaxTokens = 2048
+            });
+            _pageData.Add("Azure3", new Display
+            {
+                Address = "Azure3",
+                Title = "Azure:gpt-35-turbo",
+                Headline = "Azure OpenAI Service:gpt-35-turbo",
+                Introduction = "会社用1、実験はこれを使うこと。",
+                Placeholder = "あなたの質問",
+                MasterPrompt = _trpg.DefaultPrompt,
+                UseAzureOpenAI = true,
+                GptModel = options.Value.Model1,
+                IsPublic = false,
+                MaxTokens = 2048
+            });
+            //_pageData.Add("AzureCode2", new Display
+            //{
+            //    Address = "AzureCode2",
+            //    Title = "Azure:code-davinci-002",
+            //    Headline = "Azure OpenAI Service:code-davinci-002",
+            //    Introduction = "会社用2、コード生成用だけど割高。",
+            //    Placeholder = "あなたの質問",
+            //    MasterPrompt = _trpg.DefaultPrompt,
+            //    UseAzureOpenAI = true,
+            //    GptModel = options.Value.Model2,
+            //    IsPublic = false,
+            //    MaxTokens = 2048
+            //});
+            _pageData.Add("Azure4", new Display
+            {
+                Address = "Azure4",
+                Title = "Azure:gpt-4",
+                Headline = "Azure OpenAI Service:gpt-4",
+                Introduction = "会社用3、高い。",
+                Placeholder = "あなたの質問",
+                MasterPrompt = _trpg.DefaultPrompt,
+                UseAzureOpenAI = true,
+                GptModel = options.Value.Model3,
+                IsPublic = false,
+                MaxTokens = 2048
+            });
+            _pageData.Add("Azure4-32k", new Display
+            {
+                Address = "Azure4-32k",
+                Title = "Azure:gpt-4-32k",
+                Headline = "Azure OpenAI Service:gpt-4",
+                Introduction = "会社用4、高い。",
+                Placeholder = "あなたの質問",
+                MasterPrompt = _trpg.DefaultPrompt,
+                UseAzureOpenAI = true,
+                GptModel = options.Value.Model4,
+                IsPublic = false,
+                MaxTokens = 2048
+            });
+
             _pageData.Add("Ojisan", new Display
             {
                 Address = "Ojisan",
@@ -193,6 +271,24 @@ namespace BostNex.Services
         public List<ChatMessage> CurrentPrompt { get; set; } = new();
 
         /// <summary>
+        /// Azureを使う
+        /// </summary>
+        public bool UseAzureOpenAI { get; set; } = false;
+
+        /// <summary>
+        /// GPTのモデル
+        /// OpenAI:gpt-3.5-turbo, gpt-4, gpt-4-0314
+        /// MS:gpt-35-turbo, code-davinci-002, gpt-4, gpt-4-32k（デプロイ名で指定する必要があるので、名前はノートを見ること。）
+        /// </summary>
+        public string GptModel { get; set; } = "gpt-3.5-turbo";
+
+        /// <summary>
+        /// 返答のトークン上限を設定
+        /// 主にトークン数を節約するため。
+        /// </summary>
+        public int MaxTokens { get; set; } = 280;
+
+        /// <summary>
         /// Option入力後に呼ぶ
         /// CurrentPromptを新しく作り直す。
         /// Option.Valueの内容をPromptの0番目のContentに適用する。
@@ -235,6 +331,12 @@ namespace BostNex.Services
         /// trueだと開発モードとなり非公開のプロンプトも適用される
         /// </summary>
         public bool IsLocalDevelopMode { get; set; } = false;
+
+        // 会社用
+        public string Model1 { get; set; } = string.Empty;
+        public string Model2 { get; set; } = string.Empty;
+        public string Model3 { get; set; } = string.Empty;
+        public string Model4 { get; set; } = string.Empty;
     }
 
 }
