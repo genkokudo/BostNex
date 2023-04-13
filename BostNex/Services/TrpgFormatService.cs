@@ -88,12 +88,13 @@ namespace BostNex.Services
             //    Address = "AzureCode2",
             //    Title = "Azure:code-davinci-002",
             //    Headline = "Azure OpenAI Service:code-davinci-002",
-            //    Introduction = "会社用2、コード生成用だけど割高。",
+            //    Introduction = "会社用2、コード生成用だけど割高。他とはUIが違うので要書き換え",
             //    Placeholder = "あなたの質問",
             //    MasterPrompt = _trpg.DefaultPrompt,
             //    UseAzureOpenAI = true,
             //    GptModel = options.Value.Model2,
             //    IsPublic = false,
+            //    IsCode = true,
             //    MaxTokens = 2048
             //});
             _pageData.Add("Azure4", new Display
@@ -281,6 +282,11 @@ namespace BostNex.Services
         /// MS:gpt-35-turbo, code-davinci-002, gpt-4, gpt-4-32k（デプロイ名で指定する必要があるので、名前はノートを見ること。）
         /// </summary>
         public string GptModel { get; set; } = "gpt-3.5-turbo";
+
+        /// <summary>
+        /// code-davinci等はこっち
+        /// </summary>
+        public bool IsCode { get; set; } = false;
 
         /// <summary>
         /// 返答のトークン上限を設定

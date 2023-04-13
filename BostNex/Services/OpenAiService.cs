@@ -31,6 +31,15 @@ namespace BostNex.Services
         public Task<StreamingChatCompletions> GetNextSessionAsync(string input);
 
         /// <summary>
+        /// code-davinci用
+        /// ユーザの入力を受け取って、セッションを進める
+        /// ストリーミングは面倒なだけなのでやめ。
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public Task<Completions> GetNextCodeAsync(string input);
+
+        /// <summary>
         /// 今までのチャットログを取得する
         /// 次回の送信からカットされるものは含まない
         /// </summary>
@@ -99,7 +108,6 @@ namespace BostNex.Services
             _chatLogs.Clear();
         }
 
-
         public async Task<StreamingChatCompletions> GetNextSessionAsync(string input)
         {
             // ユーザの入力をログに追加
@@ -124,6 +132,66 @@ namespace BostNex.Services
                     response = await Api.GetChatCompletionsStreamingAsync(
                                 deploymentOrModelName: _currentDisplay.GptModel,
                                 chatCompletionsOptions);
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("maximum context length"))
+                    {
+                        // トークン数の上限を超えたので、ログを1個消して再送が良さそう
+                        _skipLogs += 2;
+                        count++;
+                        if (count > 4)
+                        {
+                            // ユーザの入力を削除して中断
+                            _chatLogs.RemoveAt(_chatLogs.Count - 1);
+                            throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。"); // どうすればいいんだろう。ソース書いて貰う時とか困るよね。
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        // 原因不明のエラー
+                        // ユーザの入力を削除して中断
+                        _chatLogs.RemoveAt(_chatLogs.Count - 1);
+                        throw;
+                    }
+                }
+            }
+
+            // ストリーミングで受け取る
+            return response.Value;
+        }
+
+
+        public async Task<Completions> GetNextCodeAsync(string input)
+        {
+            // ユーザの入力をログに追加
+            _chatLogs.Add(new ChatMessage(ChatRole.User, input));
+
+            // 返事を貰うか、原因が分からないエラーが来るまで実行
+            Response<Completions> response = null!;
+            var count = 0;
+            while (response == null)
+            {
+                try
+                {
+                    // リクエストの作成。設定項目と、今までの会話ログをセット
+                    var allChat = GetAllChat();
+                    var prompts = string.Join('\n', allChat.Select(x => x.Content)); 
+                    var completionsOptions =
+                        new CompletionsOptions()
+                        {
+                            Prompts = { prompts },
+                            Temperature = 1.0f,
+                            MaxTokens = 1024,
+                            NucleusSamplingFactor = 0.5f,
+                            FrequencyPenalty = 0,
+                            PresencePenalty = 0,
+                            GenerationSampleCount = 1,
+                        };
+
+                    // 送信
+                    response = await Api.GetCompletionsAsync(_currentDisplay.GptModel, completionsOptions);
                 }
                 catch (Exception ex)
                 {
