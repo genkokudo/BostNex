@@ -1,5 +1,5 @@
-﻿@page "/trpg"
-@page "/trpg/{pagedata}"
+﻿@page "/chat"
+@page "/chat/{pagedata}"
 @implements IDisposable
 @using Toolbelt.Blazor.HotKeys2
 @using Azure.AI.OpenAI;
@@ -9,8 +9,8 @@
 @using BostNexShared.Dto
 @using Microsoft.Extensions.Options
 @inject IOpenAiService _openAi
-@inject ITrpgService _trpg
-@inject ITrpgFormatService _format
+@inject IChatService _chat
+@inject IChatFormatService _format
 @inject IJSRuntime JS
 @inject IOptions<OpenAiOption> _options
 @inject HotKeys HotKeys
@@ -65,7 +65,7 @@ else if (_display == null)
             log.IsDisposed = !currentChat.Contains(log.AiResponse);
         }
         //  会話の進行ごとに、繰り返して表示する
-        <TrpgSessionPanel Session="log" OnStreamFinished="OnStreamFinished" />
+        <ChatSessionPanel Session="log" OnStreamFinished="OnStreamFinished" />
     }
 }
 
@@ -106,7 +106,7 @@ else if (_display == null)
     private IJSObjectReference? _jsModule = null!;
 
     /// <summary>今までのセッション</summary>
-    private List<TrpgSession> backlogs = new();
+    private List<ChatSession> backlogs = new();
 
     /// <summary>
     /// JSはここでしか読み込めない
@@ -115,7 +115,7 @@ else if (_display == null)
     /// <returns></returns>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_jsModule == null) _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Trpg.razor.js");
+        if (_jsModule == null) _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Pages/Chat.razor.js");
         await base.OnAfterRenderAsync(firstRender);
     }
 
@@ -195,9 +195,9 @@ else if (_display == null)
 
         try
         {
-            //new TrpgSession() はこのタイミングで行って、後でストリーミング受信するように変更する。
+            // チャット表示を追加
             var response = await _openAi.GetNextSessionAsync(input);
-            backlogs.Add(new TrpgSession { Text = input, StreamingResponse = response });
+            backlogs.Add(new ChatSession { Text = input, StreamingResponse = response });
             IsSubmitted = false;
             StateHasChanged();
 

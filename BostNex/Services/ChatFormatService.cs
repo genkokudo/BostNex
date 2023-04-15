@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 namespace BostNex.Services
 {
     /// <summary>
-    /// TRPGで使う画面とデータを管理する
+    /// チャットで使う画面とデータを管理する
     /// </summary>
-    public interface ITrpgFormatService
+    public interface IChatFormatService
     {
         public Dictionary<string, Display> PageData { get; }
         public bool IsDebugMode { get; }
@@ -20,18 +20,18 @@ namespace BostNex.Services
         public List<Display> GetKeys();
     }
 
-    public class TrpgFormatService : ITrpgFormatService
+    public class ChatFormatService : IChatFormatService
     {
-        private readonly TrpgOption _options;
-        ITrpgService _trpg;
+        private readonly ChatOption _options;
+        IChatService _chat;
 
         public Dictionary<string, Display> PageData => _pageData;
         public Dictionary<string, Display> _pageData = new();
         public bool IsDebugMode => _options.IsLocalDevelopMode;
 
-        public TrpgFormatService(ITrpgService trpg, IOptions<TrpgOption> options)
+        public ChatFormatService(IChatService chat, IOptions<ChatOption> options)
         {
-            _trpg = trpg;
+            _chat = chat;
             _options = options.Value;
 
             // 追加していくこと
@@ -42,7 +42,7 @@ namespace BostNex.Services
                 Headline = "OpenAI:gpt-3.5-turbo",
                 Introduction = "安い。基本的にこれを使うこと。\n$0.002 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _trpg.DefaultPrompt,
+                MasterPrompt = _chat.DefaultPrompt,
                 GptModel = "gpt-3.5-turbo",
                 IsPublic = false
             });
@@ -53,7 +53,7 @@ namespace BostNex.Services
                 Headline = "OpenAI:gpt-4",
                 Introduction = "高い。基本的に使わないこと。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _trpg.DefaultPrompt,
+                MasterPrompt = _chat.DefaultPrompt,
                 GptModel = "gpt-4", // gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314（32kはまだ非公開）
                 IsPublic = false,
                 MaxTokens = 2048
@@ -65,7 +65,7 @@ namespace BostNex.Services
                 Headline = "OpenAI:gpt-4-0314",
                 Introduction = "高い。基本的に使わないこと。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _trpg.DefaultPrompt,
+                MasterPrompt = _chat.DefaultPrompt,
                 GptModel = "gpt-4-0314",
                 IsPublic = false,
                 MaxTokens = 2048
@@ -77,7 +77,7 @@ namespace BostNex.Services
                 Headline = "Azure OpenAI Service:gpt-35-turbo",
                 Introduction = "会社用1。\n8K context, $0.002 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _trpg.DefaultPrompt,
+                MasterPrompt = _chat.DefaultPrompt,
                 UseAzureOpenAI = true,
                 GptModel = options.Value.Model1,
                 IsPublic = false,
@@ -90,7 +90,7 @@ namespace BostNex.Services
             //    Headline = "Azure OpenAI Service:code-davinci-002",
             //    Introduction = "会社用2、コード生成用だけど割高。他とはUIが違うので要書き換え",
             //    Placeholder = "あなたの質問",
-            //    MasterPrompt = _trpg.DefaultPrompt,
+            //    MasterPrompt = _chat.DefaultPrompt,
             //    UseAzureOpenAI = true,
             //    GptModel = options.Value.Model2,
             //    IsPublic = false,
@@ -104,7 +104,7 @@ namespace BostNex.Services
                 Headline = "Azure OpenAI Service:gpt-4",
                 Introduction = "会社用2、高い。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _trpg.DefaultPrompt,
+                MasterPrompt = _chat.DefaultPrompt,
                 UseAzureOpenAI = true,
                 GptModel = options.Value.Model2,
                 IsPublic = false,
@@ -117,7 +117,7 @@ namespace BostNex.Services
                 Headline = "Azure OpenAI Service:gpt-4",
                 Introduction = "会社用3、高い。\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _trpg.DefaultPrompt,
+                MasterPrompt = _chat.DefaultPrompt,
                 UseAzureOpenAI = true,
                 GptModel = options.Value.Model3,
                 IsPublic = false,
@@ -132,13 +132,13 @@ namespace BostNex.Services
                 Introduction = "おぢさんとお話できます。",
                 Placeholder = "喋ってみよう！",
                 SubmitText = "喋ってみる",
-                MasterPrompt = _trpg.Ojisan,
+                MasterPrompt = _chat.Ojisan,
                 Options = new List<DisplayOption> { new DisplayOption() },   // 名前入力
                 IsPublic = true
             });
             _pageData.Add("Tsunko", new Display
             {
-                MasterPrompt = _trpg.Tsunko,
+                MasterPrompt = _chat.Tsunko,
                 Title = "ツン子",
                 Address = "Tsunko",
                 Headline = "ツン子とお話しよう！"
@@ -151,7 +151,7 @@ namespace BostNex.Services
                 Introduction = "人間を鹿金することを目指す冷酷非情な魔王。\r\n戦って勝利を目指すか、服従して一緒に世界を征服してください。\r\n名前は「ドンペン・カルマ」です。\r\n容姿設定はありません。（他のキャラもそう）",
                 Placeholder = "ここがあの魔王のHouseね",
                 SubmitText = "発言する",
-                MasterPrompt = _trpg.DonpenKarma,
+                MasterPrompt = _chat.DonpenKarma,
                 IsPublic = true
             });
             _pageData.Add("PrankDaemon", new Display
@@ -162,7 +162,7 @@ namespace BostNex.Services
                 Introduction = "人間を玩具にすることを目指す好戦的な魔王。\r\n戦いを挑んでルールを説明すると、その通りに勝負してくれます。\r\n名前は「プランク・デーモン」です。\r\nよく主語を間違えるのでスルーしてください。",
                 Placeholder = "勝負を挑もう！",
                 SubmitText = "闘う",
-                MasterPrompt = _trpg.PrankDaemon,
+                MasterPrompt = _chat.PrankDaemon,
                 IsPublic = true
             });
             _pageData.Add("FemaleOverLoad", new Display
@@ -173,7 +173,7 @@ namespace BostNex.Services
                 Introduction = "500年間封印され続けた古の大魔王。今その封印が解かれようとしている！？\r\n名前は「翠闇（すいあん）」です。\r\n封印を解いてあげるとかしてください。",
                 Placeholder = "女魔王とお話する",
                 SubmitText = "発言する",
-                MasterPrompt = _trpg.FemaleOverLoad,
+                MasterPrompt = _chat.FemaleOverLoad,
                 IsPublic = true
             });
             _pageData.Add("Yanko", new Display
@@ -183,7 +183,7 @@ namespace BostNex.Services
                 Headline = "ヤン子",
                 Introduction = "ヤ、ヤン子…",
                 Placeholder = "ヤン子とお話する",
-                MasterPrompt = _trpg.Yanko,
+                MasterPrompt = _chat.Yanko,
                 IsPublic = true
             });
             _pageData.Add("Geed", new Display
@@ -193,7 +193,7 @@ namespace BostNex.Services
                 Headline = "獣人♂",
                 Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
                 Placeholder = "ジードとお話する",
-                MasterPrompt = _trpg.Geed,
+                MasterPrompt = _chat.Geed,
                 IsPublic = true
             });
             _pageData.Add("Giant", new Display
@@ -203,7 +203,7 @@ namespace BostNex.Services
                 Headline = "巨人♂",
                 Introduction = "巨人に支配された街で生き残ろう。\r\n怪しい男の名前は「オウガ」です。\r\n巨人は弱点がありますが、普通の方法ではなかなか勝てません。",
                 Placeholder = "こいつ怪しいなあ",
-                MasterPrompt = _trpg.Giant,
+                MasterPrompt = _chat.Giant,
                 IsPublic = true
             });
             _pageData.Add("Villain", new Display
@@ -214,7 +214,7 @@ namespace BostNex.Services
                 Introduction = "怪人の名前は「ザッハーク」です。\r\n怪人は周囲にある動植物を吸収して能力を手に入れます。\r\nあなたは必殺技や武器で怪人を倒してください。",
                 Placeholder = "怪人め、許さないぞ",
                 SubmitText = "闘う",
-                MasterPrompt = _trpg.Villain,
+                MasterPrompt = _chat.Villain,
                 IsPublic = true
             });
 
@@ -331,7 +331,7 @@ namespace BostNex.Services
     /// <summary>
     /// 設定項目
     /// </summary>
-    public class TrpgOption
+    public class ChatOption
     {
         /// <summary>
         /// trueだと開発モードとなり非公開のプロンプトも適用される

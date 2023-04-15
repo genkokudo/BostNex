@@ -26,13 +26,13 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<IAesService, AesService>();   // AES暗号
-builder.Services.AddTransient<ITrpgService, TrpgService>();
+builder.Services.AddTransient<IChatService, ChatService>();
 builder.Services.AddTransient<IHelperService, HelperService>();
-builder.Services.AddTransient<ITrpgFormatService, TrpgFormatService>();
+builder.Services.AddTransient<IChatFormatService, ChatFormatService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();                // Scopedとすることでリロードしたらセッション切れるようにする
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
-builder.Services.Configure<TrpgOption>(builder.Configuration.GetSection("TrpgSettings"));
+builder.Services.Configure<ChatOption>(builder.Configuration.GetSection("ChatSettings"));
 builder.Services.AddHotKeys2(); // キーボードショートカットを入れる
 var app = builder.Build();
 

@@ -5,7 +5,7 @@ namespace BostNexShared.Entity
     /// <summary>
     /// ページ管理
     /// </summary>
-    public record TrpgPage : BaseEntity
+    public record ChatPage : BaseEntity
     {
         /// <summary>
         /// アドレス

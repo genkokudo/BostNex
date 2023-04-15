@@ -1,18 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BostNex.Data;
-using BostNexShared.Entity;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Authorization;
+﻿using BostNex.Data;
 using BostNex.Services;
-using NuGet.Common;
+using BostNexShared.Entity;
+using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 
 namespace BostNex.Controllers

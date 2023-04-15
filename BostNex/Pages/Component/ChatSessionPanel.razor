@@ -4,8 +4,8 @@
 @using Markdig
 @using System.Text.RegularExpressions
 @inject IOpenAiService _openAi
-@inject ITrpgService _trpg
-@inject ITrpgFormatService _format
+@inject IChatService _chat
+@inject IChatFormatService _format
 
 @if (Session == null)
 {
@@ -23,7 +23,7 @@
             <p>@((MarkupString)CodeToHtml(Session.Text).Replace("\r\n", "<br />").Replace("\n", "<br />"))</p>
         </div>
     </div>
-    @* AIからの返事 *@
+    @* ChatGPTからの返事 *@
     <div class="col-1" />
     <div class="d-flex flex-row justify-content-end mb-4 col-11">
         <div class="p-3 says aicomment mx-3">
@@ -37,7 +37,7 @@
     //@bind-Session
     [Parameter]
     [EditorRequired]
-    public TrpgSession Session { get; set; } = null!;
+    public ChatSession Session { get; set; } = null!;
 
     /// <summary>
     /// ストリーミングが終わった時の処理
@@ -70,7 +70,7 @@
     }
 
     /// <summary>
-    ///
+    ///ソースコードを見つけてCodeタグをつける
     /// </summary>
     /// <param name="input"></param>
     /// <returns></returns>

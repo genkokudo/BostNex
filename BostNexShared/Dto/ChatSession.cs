@@ -7,9 +7,9 @@ namespace BostNexShared.Dto
 {
 
     /// <summary>
-    /// TRPGのやり取り1回分
+    /// Chatのやり取り1回分
     /// </summary>
-    public class TrpgSession
+    public class ChatSession
     {
         // この辺はまだ決まっていない。いくつテキスト表示するとか。
         /// <summary>
