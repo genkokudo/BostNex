@@ -1,5 +1,4 @@
 ﻿using Azure.AI.OpenAI;
-using Humanizer;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 
