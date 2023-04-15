@@ -40,7 +40,7 @@ namespace BostNex.Services
                 Address = "Openai3",
                 Title = "OpenAI:gpt-3.5-turbo",
                 Headline = "OpenAI:gpt-3.5-turbo",
-                Introduction = "安い。基本的にこれを使うこと。",
+                Introduction = "安い。基本的にこれを使うこと。\n$0.002 / 1K tokens",
                 Placeholder = "あなたの質問",
                 MasterPrompt = _trpg.DefaultPrompt,
                 GptModel = "gpt-3.5-turbo",
@@ -51,10 +51,10 @@ namespace BostNex.Services
                 Address = "Openai4",
                 Title = "OpenAI:gpt-4",
                 Headline = "OpenAI:gpt-4",
-                Introduction = "高い。基本的に使わないこと。",
+                Introduction = "高い。基本的に使わないこと。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
                 MasterPrompt = _trpg.DefaultPrompt,
-                GptModel = "gpt-4",
+                GptModel = "gpt-4", // gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314（32kはまだ非公開）
                 IsPublic = false,
                 MaxTokens = 2048
             });
@@ -63,7 +63,7 @@ namespace BostNex.Services
                 Address = "Openai4-0314",
                 Title = "OpenAI:gpt-4-0314",
                 Headline = "OpenAI:gpt-4-0314",
-                Introduction = "高い。基本的に使わないこと。",
+                Introduction = "高い。基本的に使わないこと。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
                 MasterPrompt = _trpg.DefaultPrompt,
                 GptModel = "gpt-4-0314",
@@ -75,7 +75,7 @@ namespace BostNex.Services
                 Address = "Azure3",
                 Title = "Azure:gpt-35-turbo",
                 Headline = "Azure OpenAI Service:gpt-35-turbo",
-                Introduction = "会社用1、実験はこれを使うこと。",
+                Introduction = "会社用1。\n8K context, $0.002 / 1K tokens",
                 Placeholder = "あなたの質問",
                 MasterPrompt = _trpg.DefaultPrompt,
                 UseAzureOpenAI = true,
@@ -102,11 +102,11 @@ namespace BostNex.Services
                 Address = "Azure4",
                 Title = "Azure:gpt-4",
                 Headline = "Azure OpenAI Service:gpt-4",
-                Introduction = "会社用3、高い。",
+                Introduction = "会社用2、高い。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens",
                 Placeholder = "あなたの質問",
                 MasterPrompt = _trpg.DefaultPrompt,
                 UseAzureOpenAI = true,
-                GptModel = options.Value.Model3,
+                GptModel = options.Value.Model2,
                 IsPublic = false,
                 MaxTokens = 2048
             });
@@ -115,11 +115,11 @@ namespace BostNex.Services
                 Address = "Azure4-32k",
                 Title = "Azure:gpt-4-32k",
                 Headline = "Azure OpenAI Service:gpt-4",
-                Introduction = "会社用4、高い。",
+                Introduction = "会社用3、高い。\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
                 MasterPrompt = _trpg.DefaultPrompt,
                 UseAzureOpenAI = true,
-                GptModel = options.Value.Model4,
+                GptModel = options.Value.Model3,
                 IsPublic = false,
                 MaxTokens = 2048
             });
