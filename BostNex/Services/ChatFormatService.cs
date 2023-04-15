@@ -309,7 +309,7 @@ namespace BostNex.Services
                 return;
             }
             var values = Options.Select(x => x.Value ?? string.Empty).ToArray();
-            var content = CurrentPrompt[0].Content.FormatWith(values);
+            var content = string.Format(CurrentPrompt[0].Content, values);
             CurrentPrompt[0] = new ChatMessage(MasterPrompt[0].Role, content);
         }
     }
