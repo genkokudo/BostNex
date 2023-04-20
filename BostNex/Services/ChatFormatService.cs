@@ -216,6 +216,16 @@ namespace BostNex.Services
                 MasterPrompt = _chat.Villain,
                 IsPublic = true
             });
+            _pageData.Add("Geed2", new Display
+            {
+                Address = "Geed2",
+                Title = "獣人♂",
+                Headline = "獣人♂特別編",
+                Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
+                Placeholder = "ジードとお話する",
+                MasterPrompt = _chat.Geed2,
+                IsPublic = false
+            });
 
             // 開発モードの場合
             if (!_options.IsLocalDevelopMode)
