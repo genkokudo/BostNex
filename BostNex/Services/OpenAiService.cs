@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
+using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
+using NuGet.Protocol;
 
 namespace BostNex.Services
 {
@@ -56,6 +58,12 @@ namespace BostNex.Services
         /// </summary>
         /// <param name="aiMessage"></param>
         public void AddAiChatLog(string aiMessage);
+
+        /// <summary>
+        /// トークン数を数える
+        /// </summary>
+        /// <param name="message"></param>
+        public int CountToken(string message);
     }
 
     public class OpenAiService : IOpenAiService
@@ -66,6 +74,7 @@ namespace BostNex.Services
         private readonly OpenAiOption _options;
 
         public Display CurrentDisplay { get => _currentDisplay; }
+        private ITokenizer? _tokenizer { get; set; }
 
         /// <summary>
         /// プロンプト含む全チャットログ
@@ -103,6 +112,7 @@ namespace BostNex.Services
             {
                 display.ApplyOption();
                 _currentDisplay = display;
+                _tokenizer = TokenizerBuilder.CreateByModelName(display.GptModel);
             }
             _skipLogs = 0;
             _chatLogs.Clear();
@@ -132,6 +142,10 @@ namespace BostNex.Services
                     response = await Api.GetChatCompletionsStreamingAsync(
                                 deploymentOrModelName: _currentDisplay.GptModel,
                                 chatCompletionsOptions);
+
+                    //// おおよそのトークン数を数える（正確ではない）
+                    //var tokens = CountToken(allChat);
+                    //Console.WriteLine(tokens);
                 }
                 catch (Exception ex)
                 {
@@ -254,6 +268,25 @@ namespace BostNex.Services
             }
             _currentDisplay.MasterPrompt = result;
             InitializeChat(_currentDisplay);
+        }
+
+        /// <summary>
+        /// カンマとか入れてるし、roleの扱いが分からないので
+        /// 実際のトークン数よりも多いはず
+        /// </summary>
+        /// <param name="allChat"></param>
+        /// <returns></returns>
+        private int CountToken(List<ChatMessage> allChat)
+        {
+            var text = string.Join(',', allChat.Select(x => x.Role).ToArray()) + string.Join(',', allChat.Select(x => x.Content).ToArray());
+            return CountToken(text);
+        }
+
+        // Tokenizerを使う。
+        public int CountToken(string message)
+        {
+            var encoded = _tokenizer.Encode(message, Array.Empty<string>());
+            return encoded.Count;
         }
     }
 

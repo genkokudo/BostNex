@@ -219,11 +219,21 @@ namespace BostNex.Services
             _pageData.Add("Geed2", new Display
             {
                 Address = "Geed2",
-                Title = "獣人♂",
+                Title = "獣人2♂",
                 Headline = "獣人♂特別編",
                 Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
                 Placeholder = "ジードとお話する",
                 MasterPrompt = _chat.Geed2,
+                IsPublic = false
+            });
+            _pageData.Add("Giant2", new Display
+            {
+                Address = "Giant2",
+                Title = "巨人2♂",
+                Headline = "巨人♂特別編",
+                Introduction = "巨人に支配された街で生き残ろう。\r\n怪しい男の名前は「オウガ」です。\r\n巨人は弱点がありますが、普通の方法ではなかなか勝てません。",
+                Placeholder = "こいつ怪しいなあ",
+                MasterPrompt = _chat.Giant2,
                 IsPublic = false
             });
 
@@ -320,6 +330,65 @@ namespace BostNex.Services
             var values = Options.Select(x => x.Value ?? string.Empty).ToArray();
             var content = string.Format(CurrentPrompt[0].Content, values);
             CurrentPrompt[0] = new ChatMessage(MasterPrompt[0].Role, content);
+        }
+
+        /// <summary>
+        /// トークン数カウントで使用するモデル
+        /// "gpt-3.5-turbo"か、"gpt-4"のどちらかにしておく
+        /// </summary>
+        public string GptTokenModel { get
+            {
+                _gptTokenModel = _gptTokenModel == null ? GetTokenModel(GptModel) : _gptTokenModel;
+                return _gptTokenModel;
+            } 
+        }
+        private string _gptTokenModel = null!;
+
+        /// <summary>
+        /// モデルのトークン数の限界値
+        /// </summary>
+        public int TokenLimitByModel
+        {
+            get
+            {
+                _tokenLimitByModel = _tokenLimitByModel < 0 ? GetTokenLimitByModel(GptModel) : _tokenLimitByModel;
+                return _tokenLimitByModel;
+            }
+        }
+        private int _tokenLimitByModel = -1;
+
+        /// <summary>
+        /// トークン数カウントで使用するモデルを決める
+        /// "4"が含んでたら"gpt-4"にするという適当っぷり
+        /// </summary>
+        /// <param name="model">モデル名</param>
+        /// <returns></returns>
+        private string GetTokenModel(string model)
+        {
+            var result = "gpt-3.5-turbo";
+            if (model.Contains("4"))
+            {
+                result = "gpt-4";   // むっちゃ適当
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// モデルに対するトークン数の限界を決める
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        private int GetTokenLimitByModel(string model)
+        {
+            if (model.Contains("8k"))
+            {
+                return 8192;
+            }
+            if (model.Contains("32k"))
+            {
+                return 32768;
+            }
+            return 4096;
         }
     }
 

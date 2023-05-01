@@ -30,6 +30,7 @@ builder.Services.AddTransient<IChatService, ChatService>();
 builder.Services.AddTransient<IHelperService, HelperService>();
 builder.Services.AddTransient<IChatFormatService, ChatFormatService>();
 builder.Services.AddScoped<IOpenAiService, OpenAiService>();                // Scopedとすることでリロードしたらセッション切れるようにする
+builder.Services.AddTransient<ISummaryService, SummaryService>();
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
 builder.Services.Configure<ChatOption>(builder.Configuration.GetSection("ChatSettings"));
