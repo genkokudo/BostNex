@@ -132,6 +132,14 @@ namespace BostNex.Services
                 {
                     // リクエストの作成。設定項目と、今までの会話ログをセット
                     var allChat = GetAllChat();
+
+                    // おおよそのトークン数を数える（正確ではない）
+                    if (CountToken(allChat) > CurrentDisplay.TokenLimitByModel)
+                    {
+                        _skipLogs += 2;
+                        allChat = GetAllChat();
+                    }
+
                     var chatCompletionsOptions = new ChatCompletionsOptions()
                     {
                         MaxTokens = _currentDisplay.MaxTokens,
@@ -142,10 +150,6 @@ namespace BostNex.Services
                     response = await Api.GetChatCompletionsStreamingAsync(
                                 deploymentOrModelName: _currentDisplay.GptModel,
                                 chatCompletionsOptions);
-
-                    //// おおよそのトークン数を数える（正確ではない）
-                    //var tokens = CountToken(allChat);
-                    //Console.WriteLine(tokens);
                 }
                 catch (Exception ex)
                 {
@@ -176,7 +180,7 @@ namespace BostNex.Services
             return response.Value;
         }
 
-
+        #region code-davinci用
         public async Task<Completions> GetNextCodeAsync(string input)
         {
             // ユーザの入力をログに追加
@@ -235,6 +239,7 @@ namespace BostNex.Services
             // ストリーミングで受け取る
             return response.Value;
         }
+        #endregion
 
         public void AddAiChatLog(string aiMessage)
         {
@@ -271,6 +276,7 @@ namespace BostNex.Services
         }
 
         /// <summary>
+        /// トークン数を数える
         /// カンマとか入れてるし、roleの扱いが分からないので
         /// 実際のトークン数よりも多いはず
         /// </summary>
@@ -285,8 +291,8 @@ namespace BostNex.Services
         // Tokenizerを使う。
         public int CountToken(string message)
         {
-            var encoded = _tokenizer.Encode(message, Array.Empty<string>());
-            return encoded.Count;
+            var encoded = _tokenizer?.Encode(message, Array.Empty<string>());
+            return encoded!.Count;
         }
     }
 
