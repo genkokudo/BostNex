@@ -34,6 +34,7 @@ builder.Services.AddTransient<ISummaryService, SummaryService>();
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
 builder.Services.Configure<ChatOption>(builder.Configuration.GetSection("ChatSettings"));
+builder.Services.AddSingleton<IKernelService, KernelService>();
 builder.Services.AddHotKeys2(); // キーボードショートカットを入れる
 var app = builder.Build();
 

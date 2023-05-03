@@ -112,7 +112,7 @@ namespace BostNex.Services
             {
                 display.ApplyOption();
                 _currentDisplay = display;
-                _tokenizer = TokenizerBuilder.CreateByModelName(display.GptModel);
+                _tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel); 
             }
             _skipLogs = 0;
             _chatLogs.Clear();

@@ -78,7 +78,7 @@ namespace BostNex.Services
                 Placeholder = "あなたの質問",
                 MasterPrompt = _chat.DefaultPrompt,
                 UseAzureOpenAI = true,
-                GptModel = options.Value.Model1,
+                GptModel = options.Value.Models[0],
                 IsPublic = false,
                 MaxTokens = 2048
             });
@@ -91,7 +91,7 @@ namespace BostNex.Services
             //    Placeholder = "あなたの質問",
             //    MasterPrompt = _chat.DefaultPrompt,
             //    UseAzureOpenAI = true,
-            //    GptModel = options.Value.Model2,
+            //    GptModel = options.Value.Models[3],
             //    IsPublic = false,
             //    IsCode = true,
             //    MaxTokens = 2048
@@ -105,7 +105,7 @@ namespace BostNex.Services
                 Placeholder = "あなたの質問",
                 MasterPrompt = _chat.DefaultPrompt,
                 UseAzureOpenAI = true,
-                GptModel = options.Value.Model2,
+                GptModel = options.Value.Models[1],
                 IsPublic = false,
                 MaxTokens = 2048
             });
@@ -118,7 +118,7 @@ namespace BostNex.Services
                 Placeholder = "あなたの質問",
                 MasterPrompt = _chat.DefaultPrompt,
                 UseAzureOpenAI = true,
-                GptModel = options.Value.Model3,
+                GptModel = options.Value.Models[2],
                 IsPublic = false,
                 MaxTokens = 2048
             });
@@ -417,10 +417,7 @@ namespace BostNex.Services
         public bool IsLocalDevelopMode { get; set; } = false;
 
         // 会社用
-        public string Model1 { get; set; } = string.Empty;
-        public string Model2 { get; set; } = string.Empty;
-        public string Model3 { get; set; } = string.Empty;
-        public string Model4 { get; set; } = string.Empty;
+        public string[] Models { get; set; } = null!;
     }
 
 }

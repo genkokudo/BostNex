@@ -21,9 +21,7 @@ namespace BostNex.Services
 
     public class SummaryService : ISummaryService
     {
-        private IKernel _kernel = Kernel.Builder.Build();
-        private readonly OpenAiOption _options;
-        private readonly ChatOption _chatOptions;
+        private readonly IKernelService _kernel;
         private readonly bool IsUseAzureOpenAI = false;                 // 手で書き換えてね。
 
         //private readonly string _prompt = "# 命令書\r\nあなたはプロの編集者です。以下の制約条件に従って、入力する文章を要約してください。\r\n\r\n# 制約条件\r\n- 重要なキーワードを取りこぼさない。\r\n- 文章の意味を変更しない。\r\n- 架空の表現や言葉を使用しない。\r\n- 入力する文章を150文字以内にまとめて出力。\r\n- 要約した文章の句読点を含めた文字数を出力。\r\n- 文章中の数値には変更を加えない。\r\n\r\n# 出力形式\r\n要約した文章:\r\n出力した文章の句読点を含めた文字数:";
@@ -41,25 +39,17 @@ namespace BostNex.Services
         // これを呼べば良い。MSかOpenAIかは現在の所固定で、IsUseAzureOpenAIによる。
         private ISKFunction _summarize;
 
-        public SummaryService(IOptions<OpenAiOption> options, IOptions<ChatOption> chatOptions)
+        public SummaryService(IKernelService kernel)
         {
-            _options = options.Value;
-            _chatOptions = chatOptions.Value;
-
-            // カーネルを作成、複数登録できる
-            _kernel.Config.AddOpenAIChatCompletionService("sampleOpenAI", "gpt-3.5-turbo", _options.ApiKey);  // この"sampleOpenAI"は_summarize
-            _kernel.Config.AddAzureTextCompletionService("sampleAzure",
-                _chatOptions.Model1,
-                _options.AzureUri,
-                _options.AzureApiKey);  // new AzureCliCredential()を使っても良い
+            _kernel = kernel;
 
             // 関数作成
-            _summarize = _kernel.CreateSemanticFunction(_prompt, new PromptTemplateConfig
+            _summarize = _kernel.Kernel.CreateSemanticFunction(_prompt, new PromptTemplateConfig
             {
                 // temperatureみたいなパラメータはCompletionで設定
                 // Type は分からん。"completion", "embeddings"とかを設定する。
                 // Input で、パラメータを設定する
-                DefaultServices = { IsUseAzureOpenAI ? "sampleAzure" : "sampleOpenAI" }
+                DefaultServices = { IsUseAzureOpenAI ? ModelType.Azure35.ToString() : ModelType.OpenAIGpt35Turbo.ToString() }
             });
         }
 
@@ -106,6 +96,7 @@ namespace BostNex.Services
         // ネイティブスキルとは？
         // 一定のお約束に従った C# のクラスで、スキルの関数として利用できます。
         // （プロンプトで出来ることはなるべくプロンプトでやってあげた方が良いです。）
+        // https://zenn.dev/microsoft/articles/semantic-kernel-3
 
 
     }
