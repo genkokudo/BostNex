@@ -22,7 +22,7 @@ namespace BostNex.Services
     public class ChatFormatService : IChatFormatService
     {
         private readonly ChatOption _options;
-        IChatService _chat;
+        private readonly IChatService _chat;
 
         public Dictionary<string, Display> PageData => _pageData;
         public Dictionary<string, Display> _pageData = new();
@@ -41,7 +41,7 @@ namespace BostNex.Services
                 Headline = "OpenAI:gpt-3.5-turbo",
                 Introduction = "安い。基本的にこれを使うこと。\n$0.002 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _chat.DefaultPrompt,
+                MasterPrompt = _chat.Chat["DefaultPrompt"],
                 GptModel = "gpt-3.5-turbo",
                 IsPublic = false
             });
@@ -52,7 +52,7 @@ namespace BostNex.Services
                 Headline = "OpenAI:gpt-4",
                 Introduction = "高い。基本的に使わないこと。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _chat.DefaultPrompt,
+                MasterPrompt = _chat.Chat["DefaultPrompt"],
                 GptModel = "gpt-4", // gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314（32kはまだ非公開）
                 IsPublic = false,
                 MaxTokens = 2048
@@ -64,7 +64,7 @@ namespace BostNex.Services
                 Headline = "OpenAI:gpt-4-0314",
                 Introduction = "高い。基本的に使わないこと。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _chat.DefaultPrompt,
+                MasterPrompt = _chat.Chat["DefaultPrompt"],
                 GptModel = "gpt-4-0314",
                 IsPublic = false,
                 MaxTokens = 2048
@@ -76,7 +76,7 @@ namespace BostNex.Services
                 Headline = "Azure OpenAI Service:gpt-35-turbo",
                 Introduction = "会社用1。\n8K context, $0.002 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _chat.DefaultPrompt,
+                MasterPrompt = _chat.Chat["DefaultPrompt"],
                 UseAzureOpenAI = true,
                 GptModel = options.Value.Models[0],
                 IsPublic = false,
@@ -103,7 +103,7 @@ namespace BostNex.Services
                 Headline = "Azure OpenAI Service:gpt-4",
                 Introduction = "会社用2、高い。\n8K context, プロンプト: $0.03 / 1K tokens, 補完: $0.06 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _chat.DefaultPrompt,
+                MasterPrompt = _chat.Chat["DefaultPrompt"],
                 UseAzureOpenAI = true,
                 GptModel = options.Value.Models[1],
                 IsPublic = false,
@@ -116,7 +116,7 @@ namespace BostNex.Services
                 Headline = "Azure OpenAI Service:gpt-4",
                 Introduction = "会社用3、高い。\n32K context, プロンプト: $0.06 / 1K tokens, 補完: $0.12 / 1K tokens",
                 Placeholder = "あなたの質問",
-                MasterPrompt = _chat.DefaultPrompt,
+                MasterPrompt = _chat.Chat["DefaultPrompt"],
                 UseAzureOpenAI = true,
                 GptModel = options.Value.Models[2],
                 IsPublic = false,
@@ -131,13 +131,13 @@ namespace BostNex.Services
                 Introduction = "おぢさんとお話できます。",
                 Placeholder = "喋ってみよう！",
                 SubmitText = "喋ってみる",
-                MasterPrompt = _chat.Ojisan,
+                MasterPrompt = _chat.Chat["Ojisan"],
                 Options = new List<DisplayOption> { new DisplayOption() },   // 名前入力
                 IsPublic = true
             });
             _pageData.Add("Tsunko", new Display
             {
-                MasterPrompt = _chat.Tsunko,
+                MasterPrompt = _chat.Chat["Tsunko"],
                 Title = "ツン子",
                 Address = "Tsunko",
                 Headline = "ツン子とお話しよう！"
@@ -150,7 +150,7 @@ namespace BostNex.Services
                 Introduction = "人間を鹿金することを目指す冷酷非情な魔王。\r\n戦って勝利を目指すか、服従して一緒に世界を征服してください。\r\n名前は「ドンペン・カルマ」です。\r\n容姿設定はありません。（他のキャラもそう）",
                 Placeholder = "ここがあの魔王のHouseね",
                 SubmitText = "発言する",
-                MasterPrompt = _chat.DonpenKarma,
+                MasterPrompt = _chat.Chat["DonpenKarma"],
                 IsPublic = true
             });
             _pageData.Add("PrankDaemon", new Display
@@ -161,7 +161,7 @@ namespace BostNex.Services
                 Introduction = "人間を玩具にすることを目指す好戦的な魔王。\r\n戦いを挑んでルールを説明すると、その通りに勝負してくれます。\r\n名前は「プランク・デーモン」です。\r\nよく主語を間違えるのでスルーしてください。",
                 Placeholder = "勝負を挑もう！",
                 SubmitText = "闘う",
-                MasterPrompt = _chat.PrankDaemon,
+                MasterPrompt = _chat.Chat["PrankDaemon"],
                 IsPublic = true
             });
             _pageData.Add("FemaleOverLoad", new Display
@@ -172,7 +172,7 @@ namespace BostNex.Services
                 Introduction = "500年間封印され続けた古の大魔王。今その封印が解かれようとしている！？\r\n名前は「翠闇（すいあん）」です。\r\n封印を解いてあげるとかしてください。",
                 Placeholder = "女魔王とお話する",
                 SubmitText = "発言する",
-                MasterPrompt = _chat.FemaleOverLoad,
+                MasterPrompt = _chat.Chat["FemaleOverLoad"],
                 IsPublic = true
             });
             _pageData.Add("Yanko", new Display
@@ -182,7 +182,7 @@ namespace BostNex.Services
                 Headline = "ヤン子",
                 Introduction = "ヤ、ヤン子…",
                 Placeholder = "ヤン子とお話する",
-                MasterPrompt = _chat.Yanko,
+                MasterPrompt = _chat.Chat["Yanko"],
                 IsPublic = true
             });
             _pageData.Add("Geed", new Display
@@ -192,7 +192,7 @@ namespace BostNex.Services
                 Headline = "獣人♂",
                 Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
                 Placeholder = "ジードとお話する",
-                MasterPrompt = _chat.Geed,
+                MasterPrompt = _chat.Chat["Geed"],
                 IsPublic = true
             });
             _pageData.Add("Giant", new Display
@@ -202,7 +202,7 @@ namespace BostNex.Services
                 Headline = "巨人♂",
                 Introduction = "巨人に支配された街で生き残ろう。\r\n怪しい男の名前は「オウガ」です。\r\n巨人は弱点がありますが、普通の方法ではなかなか勝てません。",
                 Placeholder = "こいつ怪しいなあ",
-                MasterPrompt = _chat.Giant,
+                MasterPrompt = _chat.Chat["Giant"],
                 IsPublic = true
             });
             _pageData.Add("Villain", new Display
@@ -213,7 +213,7 @@ namespace BostNex.Services
                 Introduction = "怪人の名前は「ザッハーク」です。\r\n怪人は周囲にある動植物を吸収して能力を手に入れます。\r\nあなたは必殺技や武器で怪人を倒してください。",
                 Placeholder = "怪人め、許さないぞ",
                 SubmitText = "闘う",
-                MasterPrompt = _chat.Villain,
+                MasterPrompt = _chat.Chat["Villain"],
                 IsPublic = true
             });
             _pageData.Add("Geed2", new Display
@@ -221,9 +221,11 @@ namespace BostNex.Services
                 Address = "Geed2",
                 Title = "獣人2♂",
                 Headline = "獣人♂特別編",
-                Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
+                Introduction = "人間は獣人に服従すべき脆弱な種族だ。",
                 Placeholder = "ジードとお話する",
-                MasterPrompt = _chat.Geed2,
+                MasterPrompt = _chat.Chat["Geed2"],
+                Temperature = 0.9f,
+                PresencePenalty = 1.5f,
                 IsPublic = false
             });
             _pageData.Add("Giant2", new Display
@@ -231,9 +233,11 @@ namespace BostNex.Services
                 Address = "Giant2",
                 Title = "巨人2♂",
                 Headline = "巨人♂特別編",
-                Introduction = "巨人に支配された街で生き残ろう。\r\n怪しい男の名前は「オウガ」です。\r\n巨人は弱点がありますが、普通の方法ではなかなか勝てません。",
+                Introduction = "巨人に支配された街で生き残ろう。",
                 Placeholder = "こいつ怪しいなあ",
-                MasterPrompt = _chat.Giant2,
+                MasterPrompt = _chat.Chat["Giant2"],
+                Temperature = 0.9f,
+                PresencePenalty = 1.5f,
                 IsPublic = false
             });
 
@@ -270,14 +274,6 @@ namespace BostNex.Services
         public string Placeholder { get; set; } = "喋ってみよう！";
         /// <summary>送信ボタン</summary>
         public string SubmitText { get; set; } = "送信";
-        ///// <summary>
-        ///// 0から2の範囲で指定するけど、大きすぎると壊れる
-        ///// </summary>
-        //public double Temperature { get; set; } = 2.0;
-        /// <summary>
-        /// マスター扱い。上書きとかしないこと（開発モードは別）
-        /// </summary>
-        public List<ChatMessage> MasterPrompt { get; set; } = new();
 
         /// <summary>これがfalseの場合、"IsLocalDevelopMode": falseならば表示しない</summary>
         public bool IsPublic { get; set; } = true;
@@ -286,12 +282,20 @@ namespace BostNex.Services
         public List<DisplayOption> Options { get; set; } = new();
 
         /// <summary>
+        /// ChatServiceから取ってきたプロンプト。
+        /// マスター扱い。上書きとかしないこと（開発モードは別）
+        /// </summary>
+        public List<ChatMessage> MasterPrompt { get; set; } = new();
+
+        /// <summary>
         /// 実際に画面で使用するプロンプト
+        /// MasterPromptにOptionsを適用した物。
         /// </summary>
         public List<ChatMessage> CurrentPrompt { get; set; } = new();
 
         /// <summary>
-        /// Azureを使う
+        /// AzureOpenAIを使う
+        /// falseの時は本家のAPIを使う。
         /// </summary>
         public bool UseAzureOpenAI { get; set; } = false;
 
@@ -304,14 +308,32 @@ namespace BostNex.Services
 
         /// <summary>
         /// code-davinci等はこっち
+        /// 補間系の画面処理にする（未実装）
         /// </summary>
         public bool IsCode { get; set; } = false;
+
+        #region OpenAIのパラメータ
+
+        /// <summary>
+        /// デフォルトは1。サンプリング温度は0～2の間で指定します。
+        /// 0.8のような高い値は出力をよりランダムにし、0.2のような低い値は出力をより集中させて、決定論的にします。
+        /// 1を超えると壊れる可能性があるというか、全く使い物にならない。
+        /// </summary>
+        public float Temperature { get; set; } = 1.0f;
+
+        /// <summary>
+        /// デフォルトは0。-2.0から2.0の間の数値。
+        /// 正の値は、新しいトークンがこれまでのテキストに出現したトークンを繰り返すとペナルティを与え、新しいトピックについて話す可能性を高めます。
+        /// </summary>
+        public float PresencePenalty { get; set; } = 0f;
 
         /// <summary>
         /// 返答のトークン上限を設定
         /// 主にトークン数を節約するため。
         /// </summary>
         public int MaxTokens { get; set; } = 280;
+
+        #endregion 
 
         /// <summary>
         /// Option入力後に呼ぶ
@@ -332,6 +354,7 @@ namespace BostNex.Services
             CurrentPrompt[0] = new ChatMessage(MasterPrompt[0].Role, content);
         }
 
+        #region トークン数に関するフィールド
         /// <summary>
         /// トークン数カウントで使用するモデル
         /// "gpt-3.5-turbo"か、"gpt-4"のどちらかにしておく
@@ -390,6 +413,8 @@ namespace BostNex.Services
             }
             return 4096;
         }
+        #endregion
+
     }
 
     /// <summary>

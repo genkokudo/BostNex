@@ -142,7 +142,7 @@ namespace BostNex.Services
 
                     var chatCompletionsOptions = new ChatCompletionsOptions()
                     {
-                        MaxTokens = _currentDisplay.MaxTokens,
+                        MaxTokens = _currentDisplay.MaxTokens, Temperature = _currentDisplay.Temperature, PresencePenalty = _currentDisplay.PresencePenalty 
                     };
                     chatCompletionsOptions.Messages.AddRange(allChat);
 
@@ -162,7 +162,7 @@ namespace BostNex.Services
                         {
                             // ユーザの入力を削除して中断
                             _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                            throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。"); // どうすればいいんだろう。ソース書いて貰う時とか困るよね。
+                            throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。");
                         }
                         continue;
                     }
@@ -200,11 +200,11 @@ namespace BostNex.Services
                         new CompletionsOptions()
                         {
                             Prompts = { prompts },
-                            Temperature = 1.0f,
-                            MaxTokens = 1024,
+                            MaxTokens = _currentDisplay.MaxTokens,
+                            Temperature = _currentDisplay.Temperature,
+                            PresencePenalty = _currentDisplay.PresencePenalty,
                             NucleusSamplingFactor = 0.5f,
                             FrequencyPenalty = 0,
-                            PresencePenalty = 0,
                             GenerationSampleCount = 1,
                         };
 
