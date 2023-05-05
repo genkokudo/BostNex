@@ -26,6 +26,11 @@ namespace BostNex.Services.SemanticKernel
         DarkMagic
     }
 
+    public enum DarkMagicFunction
+    {
+        Summarize
+    }
+
     public class SkillService : ISkillService
     {
         private readonly bool IsUseAzureOpenAI = false;                 // 手で書き換えてね。
@@ -71,7 +76,7 @@ namespace BostNex.Services.SemanticKernel
                 // Type は"completion", "embeddings"とかを設定する。
                 // Input で、パラメータを設定する
                 DefaultServices = { IsUseAzureOpenAI ? ModelType.Azure35.ToString() : ModelType.OpenAIGpt35Turbo.ToString() }
-            }, functionName: "Summarize", skillName: SkillCategory.DarkMagic.ToString());       // skillNameを指定しない場合、グローバル関数となる。要するにskillはスコープの役割。
+            }, functionName: DarkMagicFunction.Summarize.ToString(), skillName: SkillCategory.DarkMagic.ToString());       // skillNameを指定しない場合、グローバル関数となる。要するにskillはスコープの役割。
         }
 
         // 作成した関数の取得方法

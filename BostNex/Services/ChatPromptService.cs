@@ -5,17 +5,17 @@ namespace BostNex.Services
     /// <summary>
     /// Chatデータ
     /// </summary>
-    public interface IChatService
+    public interface IChatPromptService
     {
         public Dictionary<string, List<ChatMessage>> Chat { get; }
     }
 
-    public class ChatService : IChatService
+    public class ChatPromptService : IChatPromptService
     {
         private readonly Dictionary<string, List<ChatMessage>> chat; // 今の所読み込まないと思う。完全固定。
         public Dictionary<string, List<ChatMessage>> Chat => chat;
 
-        public ChatService() {
+        public ChatPromptService() {
             chat = new()
             {
                 { "DefaultPrompt", GetChat() },

@@ -1,4 +1,5 @@
 ﻿using Azure.AI.OpenAI;
+using BostNex.Services.SemanticKernel;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 
@@ -22,13 +23,13 @@ namespace BostNex.Services
     public class ChatFormatService : IChatFormatService
     {
         private readonly ChatOption _options;
-        private readonly IChatService _chat;
+        private readonly IChatPromptService _chat;
 
         public Dictionary<string, Display> PageData => _pageData;
         public Dictionary<string, Display> _pageData = new();
         public bool IsDebugMode => _options.IsLocalDevelopMode;
 
-        public ChatFormatService(IChatService chat, IOptions<ChatOption> options)
+        public ChatFormatService(IChatPromptService chat, IOptions<ChatOption> options)
         {
             _chat = chat;
             _options = options.Value;
@@ -248,16 +249,16 @@ namespace BostNex.Services
                 _pageData = _pageData.Where(x => x.Value.IsPublic).ToDictionary(x => x.Key, x => x.Value);
             }
 
-            _pageData.Add("Summarize", new Display
+            _pageData.Add(DarkMagicFunction.Summarize.ToString(), new Display
             {
-                Address = "Summarize",
+                Address = DarkMagicFunction.Summarize.ToString(),
                 Title = "要約",
                 Headline = "要約",
                 Introduction = "入力した文章を要約してくれます。",
                 Placeholder = "要約したい文章を入力",
                 Temperature = 0.2f,
                 IsPublic = false,
-                SemanticFunctionName = "Summarize"
+                SemanticFunctionName = DarkMagicFunction.Summarize.ToString()
             });
         }
 

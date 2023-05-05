@@ -1,6 +1,12 @@
-﻿@page "/chat"
-@page "/chat/{pagedata}"
+﻿@*
+    チャットを移植する。
+    ChatTestメソッドを参考に、ChatService（旧OpenAiService）を書き直す
+*@
+
+@page "/chat2"
+@page "/chat2/{pagedata}"
 @implements IDisposable
+@using BostNex.Services.SemanticKernel;
 @using Toolbelt.Blazor.HotKeys2
 @using Azure.AI.OpenAI;
 @using BostNex.Data
@@ -8,18 +14,18 @@
 @using BostNex.Pages.Component
 @using BostNexShared.Dto
 @using Microsoft.Extensions.Options
-@inject IOpenAiService _openAi
-@inject IChatPromptService _chat
+@inject IChatService _chat
+@inject IChatPromptService _prompt
 @inject IChatFormatService _format
 @inject IJSRuntime JS
-@inject IOptions<OpenAiOption> _options
+@inject IOptions<ChatServiceOption> _options
 @inject HotKeys HotKeys
 
 @* デバッグモード *@
 <DebugPanel IsVisible="_display != null && _format.IsDebugMode">
     <Collapse @bind-IsCollapsed="IsCollapsed">
         @* 現在のチャットログ表示 *@
-        <ChatGptLogPanel Logs="_openAi.ChatLog" />
+        <ChatGptLogPanel Logs="_chat.ChatLog" />
         @* プロンプト入力欄 *@
         <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText">
             <h3>プロンプトの入力</h3>
@@ -56,7 +62,7 @@ else if (_display == null)
 @* セッションの表示 *@
 @{
     // 現在有効なチャットに含まれているか確認する
-    var currentChat = _openAi.ChatLog.Where(x => x.Role == ChatRole.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
+    var currentChat = _chat.ChatLog.Where(x => x.Role == ChatRole.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
         if (!log.IsDisposed && log.StreamingResponse == null)
@@ -141,7 +147,7 @@ else if (_display == null)
         if (!string.IsNullOrWhiteSpace(Pagedata) && _format.PageData.TryGetValue(Pagedata, out _display!))
         {
             // プロンプトをセット
-            _openAi.InitializeChat(_display);
+            _chat.InitializeChat(_display);
         }
         else
         {
@@ -158,7 +164,7 @@ else if (_display == null)
     private void SubmitOption()
     {
         _isSubmittedOptions = true;
-        _openAi.InitializeChat(_display!);
+        _chat.InitializeChat(_display!);
         StateHasChanged();
     }
 
@@ -170,7 +176,7 @@ else if (_display == null)
     /// </summary>
     private void ResetPrompt(string text)
     {
-        _openAi.InitializeChat(text);
+        _chat.InitializeChat(text);
         backlogs.Clear();
         StateHasChanged();
     }
@@ -198,12 +204,12 @@ else if (_display == null)
             // チャット表示を追加
             if (_display!.IsSemanticKernel)
             {
-                var response = await _openAi.ExecuteSemanticKernelAsync(_display.SemanticFunctionName, input);
+                var response = await _chat.ExecuteSemanticKernelAsync(_display.SemanticFunctionName, input);
                 backlogs.Add(new ChatSession { Text = input, AiResponse = response, StreamingResponse = null! });
             }
             else
             {
-                var response = await _openAi.GetNextSessionAsync(input);
+                var response = await _chat.GetNextSessionAsync(input);
                 backlogs.Add(new ChatSession { Text = input, StreamingResponse = response });
             }
             IsSubmitted = false;

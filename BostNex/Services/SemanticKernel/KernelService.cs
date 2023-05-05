@@ -8,7 +8,18 @@ namespace BostNex.Services.SemanticKernel
     /// </summary>
     public interface IKernelService
     {
+        /// <summary>
+        /// スキルを登録したカーネル
+        /// チャットはモデルが選べないのでGetChatKernelを使用すること
+        /// </summary>
         public IKernel Kernel { get; }
+
+        /// <summary>
+        /// チャット用のカーネルを取得
+        /// スキル無し
+        /// </summary>
+        /// <returns></returns>
+        public IKernel GetChatKernel(ModelType type);
     }
 
     /// <summary>
@@ -61,7 +72,7 @@ namespace BostNex.Services.SemanticKernel
             _kernel = Microsoft.SemanticKernel.Kernel.Builder.Build();
             // カーネルを作成、複数登録できる
             // OpenAI
-            _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt35Turbo.ToString(), "gpt-3.5-turbo", _options.ApiKey);  // この第1引数は_summarizeで指定する。
+            _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt35Turbo.ToString(), "gpt-3.5-turbo", _options.ApiKey);
             _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt4.ToString(), "gpt-4", _options.ApiKey);
             _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt40314.ToString(), "gpt-4-0314", _options.ApiKey);
 
@@ -80,7 +91,53 @@ namespace BostNex.Services.SemanticKernel
             }
         }
 
-
+        public IKernel GetChatKernel(ModelType type)
+        {
+            var kernel = Microsoft.SemanticKernel.Kernel.Builder.Build();
+            switch (type)
+            {
+                case ModelType.OpenAIGpt35Turbo:
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), "gpt-3.5-turbo", _options.ApiKey);
+                    break;
+                case ModelType.OpenAIGpt4:
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), "gpt-4", _options.ApiKey);
+                    break;
+                case ModelType.OpenAIGpt40314:
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), "gpt-4-0314", _options.ApiKey);
+                    break;
+                case ModelType.Azure35:
+                    if (_chatOptions.Models.Length <= 0)
+                    {
+                        return null!;
+                    }
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[0], _options.AzureUri, _options.AzureApiKey);
+                    break;
+                case ModelType.Azure4:
+                    if (_chatOptions.Models.Length <= 1)
+                    {
+                        return null!;
+                    }
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[1], _options.AzureUri, _options.AzureApiKey);
+                    break;
+                case ModelType.Azure432k:
+                    if (_chatOptions.Models.Length <= 2)
+                    {
+                        return null!;
+                    }
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[2], _options.AzureUri, _options.AzureApiKey);
+                    break;
+                case ModelType.AzureCode:
+                    if (_chatOptions.Models.Length <= 3)
+                    {
+                        return null!;
+                    }
+                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[3], _options.AzureUri, _options.AzureApiKey);
+                    break;
+                default:
+                    break;
+            }
+            return kernel;
+        }
     }
 
 }
