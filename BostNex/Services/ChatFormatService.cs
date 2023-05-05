@@ -247,6 +247,18 @@ namespace BostNex.Services
                 // _pageDataからIsPublicではないものを除外する
                 _pageData = _pageData.Where(x => x.Value.IsPublic).ToDictionary(x => x.Key, x => x.Value);
             }
+
+            _pageData.Add("Summarize", new Display
+            {
+                Address = "Summarize",
+                Title = "要約",
+                Headline = "要約",
+                Introduction = "入力した文章を要約してくれます。",
+                Placeholder = "要約したい文章を入力",
+                Temperature = 0.2f,
+                IsPublic = false,
+                SemanticFunctionName = "Summarize"
+            });
         }
 
         public List<Display> GetKeys()
@@ -277,6 +289,11 @@ namespace BostNex.Services
 
         /// <summary>これがfalseの場合、"IsLocalDevelopMode": falseならば表示しない</summary>
         public bool IsPublic { get; set; } = true;
+
+        /// <summary>SemanticKernelで作成したスキルである。</summary>
+        public bool IsSemanticKernel => !string.IsNullOrWhiteSpace(SemanticFunctionName);
+        /// <summary>SemanticKernelの関数名</summary>
+        public string SemanticFunctionName { get; set; } = "";
 
         /// <summary>ユーザに入力させる項目</summary>
         public List<DisplayOption> Options { get; set; } = new();

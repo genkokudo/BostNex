@@ -196,8 +196,16 @@ else if (_display == null)
         try
         {
             // チャット表示を追加
-            var response = await _openAi.GetNextSessionAsync(input);
-            backlogs.Add(new ChatSession { Text = input, StreamingResponse = response });
+            if (_display!.IsSemanticKernel)
+            {
+                var response = await _openAi.ExecuteSemanticKernelAsync(_display.SemanticFunctionName, input);
+                backlogs.Add(new ChatSession { Text = input, AiResponse = response, StreamingResponse = null! });
+            }
+            else
+            {
+                var response = await _openAi.GetNextSessionAsync(input);
+                backlogs.Add(new ChatSession { Text = input, StreamingResponse = response });
+            }
             IsSubmitted = false;
             StateHasChanged();
 

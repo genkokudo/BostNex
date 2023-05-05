@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 
-namespace BostNex.Services
+namespace BostNex.Services.SemanticKernel
 {
     /// <summary>
     /// 使用する可能性のあるモデルを持ったKernel
@@ -29,21 +29,26 @@ namespace BostNex.Services
     {
         private static IKernel _kernel = null!;
 
-        public IKernel Kernel { get {
+        public IKernel Kernel
+        {
+            get
+            {
                 if (_kernel == null)
                 {
                     InitializeKernel();
                 }
                 return _kernel!;
-            } }
+            }
+        }
         private readonly OpenAiOption _options;
         private readonly ChatOption _chatOptions;
 
-        public KernelService(IOptions<OpenAiOption> options, IOptions<ChatOption> chatOptions)
+        public KernelService(IOptions<OpenAiOption> options, IOptions<ChatOption> chatOptions, ISkillService skill)
         {
             _options = options.Value;
             _chatOptions = chatOptions.Value;
             InitializeKernel();
+            skill.RegisterAllSkill(_kernel);
         }
 
         /// <summary>

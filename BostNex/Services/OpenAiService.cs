@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
+using BostNex.Services.SemanticKernel;
 using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
@@ -64,6 +65,14 @@ namespace BostNex.Services
         /// </summary>
         /// <param name="message"></param>
         public int CountToken(string message);
+
+        /// <summary>
+        /// SemanticKernel関数を実行する
+        /// </summary>
+        /// <param name="functionName"></param>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public Task<string> ExecuteSemanticKernelAsync(string functionName, string input);
     }
 
     public class OpenAiService : IOpenAiService
@@ -95,8 +104,14 @@ namespace BostNex.Services
         /// </summary>
         private int _skipLogs = 0;
 
-        public OpenAiService(IOptions<OpenAiOption> options)
+        /// <summary>
+        /// Semantic Kernel関数を呼び出す
+        /// </summary>
+        private readonly ISummaryService _semantic;
+
+        public OpenAiService(IOptions<OpenAiOption> options, ISummaryService semantic)
         {
+            _semantic = semantic;
             _options = options.Value;
             _msApi = new OpenAIClient(
                 new Uri(_options.AzureUri),
@@ -116,6 +131,12 @@ namespace BostNex.Services
             }
             _skipLogs = 0;
             _chatLogs.Clear();
+        }
+
+        public async Task<string> ExecuteSemanticKernelAsync(string functionName ,string input)
+        {
+            var result = await _semantic.Execute(functionName, input);
+            return result;
         }
 
         public async Task<StreamingChatCompletions> GetNextSessionAsync(string input)

@@ -1,6 +1,7 @@
 using BostNex.Areas.Identity;
 using BostNex.Data;
 using BostNex.Services;
+using BostNex.Services.SemanticKernel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
@@ -35,6 +36,7 @@ builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSetti
 builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
 builder.Services.Configure<ChatOption>(builder.Configuration.GetSection("ChatSettings"));
 builder.Services.AddSingleton<IKernelService, KernelService>();
+builder.Services.AddTransient<ISkillService, SkillService>();
 builder.Services.AddHotKeys2(); // キーボードショートカットを入れる
 var app = builder.Build();
 

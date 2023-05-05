@@ -2,9 +2,11 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SemanticFunctions;
+using System.Reflection.Metadata;
 
-namespace BostNex.Services
+namespace BostNex.Services.SemanticKernel
 {
+    // TODO:要約だけでなく、いろんな関数を呼べるようにしよう
     /// <summary>
     /// Semantic Kernelを使用して要約する
     /// モデルは現在の所固定
@@ -14,57 +16,33 @@ namespace BostNex.Services
         /// <summary>
         /// 要約を作ってくれる
         /// </summary>
+        /// <param name="function">関数名</param>
         /// <param name="input"></param>
         /// <returns></returns>
-        public Task<string> MakeSummary(string input);
+        public Task<string> Execute(string function, string input);
     }
 
     public class SummaryService : ISummaryService
     {
+        private readonly string _skillName = "DarkMagic";
         private readonly IKernelService _kernel;
-        private readonly bool IsUseAzureOpenAI = false;                 // 手で書き換えてね。
-
-        //private readonly string _prompt = "# 命令書\r\nあなたはプロの編集者です。以下の制約条件に従って、入力する文章を要約してください。\r\n\r\n# 制約条件\r\n- 重要なキーワードを取りこぼさない。\r\n- 文章の意味を変更しない。\r\n- 架空の表現や言葉を使用しない。\r\n- 入力する文章を150文字以内にまとめて出力。\r\n- 要約した文章の句読点を含めた文字数を出力。\r\n- 文章中の数値には変更を加えない。\r\n\r\n# 出力形式\r\n要約した文章:\r\n出力した文章の句読点を含めた文字数:";
-
-        private readonly string _prompt = """
-    *****
-    {{$input}}
-    *****
-
-    長すぎるので1文で最小限の文字数で要約してください。
-
-    要約:
-
-    """;
-        // これを呼べば良い。MSかOpenAIかは現在の所固定で、IsUseAzureOpenAIによる。
-        private ISKFunction _summarize;
 
         public SummaryService(IKernelService kernel)
         {
             _kernel = kernel;
 
-            // 関数作成
-            _summarize = _kernel.Kernel.CreateSemanticFunction(_prompt, new PromptTemplateConfig
-            {
-                // temperatureみたいなパラメータはCompletionで設定
-                // Type は分からん。"completion", "embeddings"とかを設定する。
-                // Input で、パラメータを設定する
-                DefaultServices = { IsUseAzureOpenAI ? ModelType.Azure35.ToString() : ModelType.OpenAIGpt35Turbo.ToString() }
-            });
         }
 
-        public async Task<string> MakeSummary(string input)
+        public async Task<string> Execute(string function, string input)
         {
-            SKContext context = null!;
-            while (context == null)
-            {
-                context = await _summarize.InvokeAsync(input);
-                Console.WriteLine($"""
-    ErrorCccurred: {context.ErrorOccurred}
-    ErrorDescription: {context.LastErrorDescription}
-    Result: {context.Result}
-    """);
-            }
+            var variables = new ContextVariables(input);
+            variables["target"] = "ワイン";
+            variables["keywords"] = "一陣の風、芳醇な香り、命を吹き込んだ";
+            variables["viewpoints"] = "高齢者へのリーチ";
+
+            var context = await _kernel.Kernel.RunAsync(variables, _kernel.Kernel.Func(_skillName, function));   // RunAsyncはISKFunction[]を渡すしかないみたい。
+            Console.WriteLine("## 結果");
+            Console.WriteLine(context);
 
             return context.Result;
         }
@@ -98,6 +76,8 @@ namespace BostNex.Services
         // （プロンプトで出来ることはなるべくプロンプトでやってあげた方が良いです。）
         // https://zenn.dev/microsoft/articles/semantic-kernel-3
 
+        // 登録した関数だったら、プロンプトに代入してくれる
+        // 例えば、{{ DarkMagic.Summarize $Name }} というプロンプトを作ると、Summarizeに$Nameをinputした結果が代入される。
 
     }
 
