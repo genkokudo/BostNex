@@ -1,9 +1,4 @@
-﻿using Azure.AI.OpenAI;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BostNexShared.Dto
+﻿namespace BostNexShared.Dto
 {
 
     /// <summary>
@@ -21,12 +16,6 @@ namespace BostNexShared.Dto
         /// Textに対する回答
         /// </summary>
         public string AiResponse { get; set; } = string.Empty;
-
-        /// <summary>
-        /// AiResponseが返ってくるストリーミングへの参照
-        /// ストリーミングが終わったらnull
-        /// </summary>
-        public StreamingChatCompletions StreamingResponse { get; set; } = null!;
 
         /// <summary>
         /// 古くなってAPI送信対象から外れていたらtrue

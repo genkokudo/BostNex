@@ -34,7 +34,7 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         /// <param name="request"></param>
         /// <returns>AIからの返答</returns>
-        public Task<string> GetNextSessionAsync(string input);        // TODO:StreamingChatCompletions -> string
+        public Task<string> GetNextSessionAsync(string input);
 
         /// <summary>
         /// 今までのチャットログを取得する

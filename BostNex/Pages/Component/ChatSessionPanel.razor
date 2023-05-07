@@ -3,9 +3,6 @@
 @using BostNexShared.Dto
 @using Markdig
 @using System.Text.RegularExpressions
-@inject IOpenAiService _openAi
-@inject IOldChatPromptService _chat
-@inject IOldChatFormatService _format
 
 @if (Session == null)
 {
@@ -39,33 +36,8 @@
     [EditorRequired]
     public ChatSession Session { get; set; } = null!;
 
-    /// <summary>
-    /// ストリーミングが終わった時の処理
-    /// </summary>
-    [Parameter]
-    public Action OnStreamFinished { get; set; } = null!;
-
     protected override async Task OnInitializedAsync()
     {
-        if (Session == null)throw new ArgumentNullException(nameof(Session));
-        if (Session.StreamingResponse == null) return;
-
-        // ストリーミングで受け取る
-        await foreach (var choice in Session.StreamingResponse.GetChoicesStreaming())
-        {
-            await foreach (var message in choice.GetMessageStreaming())
-            {
-                Session.AiResponse += message.Content;
-                StateHasChanged();
-            }
-        }
-        // 終わったら登録
-        Session.StreamingResponse = null!;
-        _openAi.AddAiChatLog(Session.AiResponse);
-
-        // 終わった時の処理
-        OnStreamFinished?.Invoke();
-
         await base.OnInitializedAsync();
     }
 

@@ -27,19 +27,14 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddTransient<IAesService, AesService>();   // AES暗号
-builder.Services.AddTransient<IOldChatPromptService, OldChatPromptService>();
 builder.Services.AddTransient<IChatPromptService, ChatPromptService>();
 builder.Services.AddTransient<IHelperService, HelperService>();
 builder.Services.AddTransient<IChatFormatService, ChatFormatService>();
-builder.Services.AddTransient<IOldChatFormatService, OldChatFormatService>();
-builder.Services.AddScoped<IOpenAiService, OpenAiService>();                // Scopedとすることでリロードしたらセッション切れるようにする
 builder.Services.AddScoped<IChatService, ChatService>();                // Scopedとすることでリロードしたらセッション切れるようにする
 builder.Services.AddTransient<ISummaryService, SummaryService>();
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
-builder.Services.Configure<OpenAiOption>(builder.Configuration.GetSection("OpenAiSettings"));
 builder.Services.Configure<ChatServiceOption>(builder.Configuration.GetSection("OpenAiSettings"));      // 名前を変える。ChatOptionとの統合を検討する
 builder.Services.Configure<ChatOption>(builder.Configuration.GetSection("ChatSettings"));
-builder.Services.Configure<OldChatOption>(builder.Configuration.GetSection("ChatSettings"));
 builder.Services.AddSingleton<IKernelService, KernelService>();
 builder.Services.AddTransient<ISkillService, SkillService>();
 builder.Services.AddHotKeys2(); // キーボードショートカットを入れる

@@ -41,7 +41,7 @@ namespace BostNex.Services.SemanticKernel
         private Dictionary<string, string> Chat => _chat;
         private readonly string _separate;
 
-        public ChatPromptService(IOptions<OpenAiOption> options) {
+        public ChatPromptService(IOptions<ChatServiceOption> options) {
             _separate = options.Value.Separate;
             _chat = new()
             {

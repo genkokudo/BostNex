@@ -64,10 +64,10 @@ namespace BostNex.Services.SemanticKernel
                 return _kernel!;
             }
         }
-        private readonly OpenAiOption _options;
+        private readonly ChatServiceOption _options;
         private readonly ChatOption _chatOptions;
 
-        public KernelService(IOptions<OpenAiOption> options, IOptions<ChatOption> chatOptions, ISkillService skill)
+        public KernelService(IOptions<ChatServiceOption> options, IOptions<ChatOption> chatOptions, ISkillService skill)
         {
             _options = options.Value;
             _chatOptions = chatOptions.Value;
