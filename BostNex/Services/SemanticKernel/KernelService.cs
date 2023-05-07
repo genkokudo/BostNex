@@ -5,6 +5,7 @@ namespace BostNex.Services.SemanticKernel
 {
     /// <summary>
     /// 使用する可能性のあるモデルを持ったKernel
+    /// AddSingletonで使用
     /// </summary>
     public interface IKernelService
     {
@@ -17,6 +18,7 @@ namespace BostNex.Services.SemanticKernel
         /// <summary>
         /// チャット用のカーネルを取得
         /// スキル無し
+        /// プールする。基本的にこっちを使う。
         /// </summary>
         /// <returns></returns>
         public IKernel GetChatKernel(ModelType type);
@@ -38,6 +40,17 @@ namespace BostNex.Services.SemanticKernel
 
     public class KernelService : IKernelService
     {
+        /// <summary>
+        /// チャット用のカーネル
+        /// スキル無し
+        /// チャットではモデル指定できないので代わりに辞書にする
+        /// </summary>
+        private static readonly Dictionary<ModelType, IKernel> _chatKernels = new();
+
+        /// <summary>
+        /// 単独処理用のカーネル
+        /// スキル登録はこっち
+        /// </summary>
         private static IKernel _kernel = null!;
 
         public IKernel Kernel
@@ -91,7 +104,13 @@ namespace BostNex.Services.SemanticKernel
             }
         }
 
-        public IKernel GetChatKernel(ModelType type)
+        /// <summary>
+        /// チャット用のカーネルを作成
+        /// スキル無し
+        /// プールしていないので、返り値のIKernelは保持しておくこと
+        /// </summary>
+        /// <returns></returns>
+        private IKernel CreateChatKernel(ModelType type)
         {
             var kernel = Microsoft.SemanticKernel.Kernel.Builder.Build();
             switch (type)
@@ -135,6 +154,17 @@ namespace BostNex.Services.SemanticKernel
                     break;
                 default:
                     break;
+            }
+            return kernel;
+        }
+
+        public IKernel GetChatKernel(ModelType type)
+        {
+            _chatKernels.TryGetValue(type, out var kernel);
+            if (kernel is null)
+            {
+                kernel = CreateChatKernel(type);
+                _chatKernels.Add(type, kernel);
             }
             return kernel;
         }

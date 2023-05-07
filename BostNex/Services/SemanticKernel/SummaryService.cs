@@ -10,6 +10,7 @@ namespace BostNex.Services.SemanticKernel
 {
     // TODO:要約だけでなく、いろんな関数を呼べるようにしよう
     // TODO:IChatCompletion を試す
+    // ISummaryService -> ISemanticServiceに名前変更
 
     /// <summary>
     /// Semantic Kernelを使用して要約する

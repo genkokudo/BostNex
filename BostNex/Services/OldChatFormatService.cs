@@ -8,7 +8,7 @@ namespace BostNex.Services
     /// <summary>
     /// チャットで使う画面とデータを管理する
     /// </summary>
-    public interface IChatFormatService
+    public interface IOldChatFormatService
     {
         public Dictionary<string, Display> PageData { get; }
         public bool IsDebugMode { get; }
@@ -20,16 +20,16 @@ namespace BostNex.Services
         public List<Display> GetKeys();
     }
 
-    public class ChatFormatService : IChatFormatService
+    public class OldChatFormatService : IOldChatFormatService
     {
-        private readonly ChatOption _options;
-        private readonly IChatPromptService _chat;
+        private readonly OldChatOption _options;
+        private readonly IOldChatPromptService _chat;
 
         public Dictionary<string, Display> PageData => _pageData;
         public Dictionary<string, Display> _pageData = new();
         public bool IsDebugMode => _options.IsLocalDevelopMode;
 
-        public ChatFormatService(IChatPromptService chat, IOptions<ChatOption> options)
+        public OldChatFormatService(IOldChatPromptService chat, IOptions<OldChatOption> options)
         {
             _chat = chat;
             _options = options.Value;
@@ -436,23 +436,9 @@ namespace BostNex.Services
     }
 
     /// <summary>
-    /// ユーザが入力する設定項目
-    /// </summary>
-    public class DisplayOption
-    {
-        public string Subject { get; set; } = "あなたの名前";
-        public string Value { get; set; } = "";
-        /// <summary>
-        /// 入力行数
-        /// 2以上だとマルチライン入力欄にする
-        /// </summary>
-        public int Rows { get; set; } = 1;
-    }
-
-    /// <summary>
     /// 設定項目
     /// </summary>
-    public class ChatOption
+    public class OldChatOption
     {
         /// <summary>
         /// trueだと開発モードとなり非公開のプロンプトも適用される

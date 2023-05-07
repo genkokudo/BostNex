@@ -9,8 +9,8 @@
 @using BostNexShared.Dto
 @using Microsoft.Extensions.Options
 @inject IOpenAiService _openAi
-@inject IChatPromptService _chat
-@inject IChatFormatService _format
+@inject IOldChatPromptService _chat
+@inject IOldChatFormatService _format
 @inject IJSRuntime JS
 @inject IOptions<OpenAiOption> _options
 @inject HotKeys HotKeys

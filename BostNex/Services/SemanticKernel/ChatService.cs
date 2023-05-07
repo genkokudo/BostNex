@@ -2,6 +2,11 @@
 using Azure.AI.OpenAI;
 using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
+using NuGet.Configuration;
 using NuGet.Packaging;
 
 namespace BostNex.Services.SemanticKernel
@@ -13,12 +18,12 @@ namespace BostNex.Services.SemanticKernel
         /// プロンプトがあれば再設定する、無ければそのまま
         /// </summary>
         /// <param name="prompt">プロンプト</param>
-        public void InitializeChat(Display prompts = null!);
+        public void InitializeChat(Display prompts);
 
         /// <summary>
         /// 主に開発用
         /// 現在のプロンプトに上書きする
-        /// <end>で区切ってプロンプトを入力する
+        /// "#end#"で区切ってプロンプトを入力する
         /// 最初はsystem、その後はuserとassistantの入力扱いとなる
         /// </summary>
         /// <param name="prompts"></param>
@@ -29,22 +34,13 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         /// <param name="request"></param>
         /// <returns>AIからの返答</returns>
-        public Task<StreamingChatCompletions> GetNextSessionAsync(string input);
-
-        /// <summary>
-        /// code-davinci用
-        /// ユーザの入力を受け取って、セッションを進める
-        /// ストリーミングは面倒なだけなのでやめ。
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public Task<Completions> GetNextCodeAsync(string input);
+        public Task<string> GetNextSessionAsync(string input);        // TODO:StreamingChatCompletions -> string
 
         /// <summary>
         /// 今までのチャットログを取得する
         /// 次回の送信からカットされるものは含まない
         /// </summary>
-        public List<ChatMessage> ChatLog { get; }
+        public ChatHistory ChatLog { get; }
 
         /// <summary>
         /// 現在の画面データ
@@ -75,26 +71,27 @@ namespace BostNex.Services.SemanticKernel
 
     public class ChatService : IChatService
     {
-        private readonly OpenAIClient _msApi;
-        private readonly OpenAIClient _openAiApi;
-        private OpenAIClient Api { get => CurrentDisplay.UseAzureOpenAI ? _msApi : _openAiApi; }
-        private readonly OpenAiOption _options;
+        private IChatCompletion _api = null!;
+        private readonly IKernelService _kernel;
+        private readonly ChatServiceOption _options;
 
         public Display CurrentDisplay { get => _currentDisplay; }
-        private ITokenizer? _tokenizer { get; set; }
+        private ITokenizer? Tokenizer { get; set; }
 
         /// <summary>
-        /// プロンプト含む全チャットログ
+        /// プロンプト含むチャットログ
+        /// 件数制限でカットした分は含まない
         /// </summary>
-        public List<ChatMessage> ChatLog => GetAllChat();
+        public ChatHistory ChatLog => GetCurrentChat();
 
         private Display _currentDisplay = null!;
 
         /// <summary>
-        /// 今までのチャットログ、プロンプトは含まない
+        /// 今までのチャットログ
         /// カットしていない全ての生データをここに保持する
+        /// プロンプトは含まない、初期チャットは含む
         /// </summary>
-        private readonly List<ChatMessage> _chatLogs = new();
+        private OpenAIChatHistory _chatHistory = null!;
 
         /// <summary>
         /// チャットを飛ばす数
@@ -107,28 +104,60 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         private readonly ISummaryService _semantic;
 
-        public ChatService(IOptions<OpenAiOption> options, ISummaryService semantic)
+        /// <summary>
+        /// オプションを取得
+        /// オプションを適用したプロンプトを取得
+        /// </summary>
+        private readonly IChatPromptService _prompt;
+
+        public ChatService(IOptions<ChatServiceOption> options, ISummaryService semantic, IKernelService kernel, IChatPromptService prompt)
         {
             _semantic = semantic;
             _options = options.Value;
-            _msApi = new OpenAIClient(
-                new Uri(_options.AzureUri),
-                new AzureKeyCredential(_options.AzureApiKey));
-            _openAiApi = new OpenAIClient(_options.ApiKey);
-            InitializeChat();
+            _kernel = kernel;
+            _prompt = prompt;
         }
         
-        public void InitializeChat(Display display = null!)
+        public void InitializeChat(Display display)
         {
-            // プロンプト再設定、無かったらそのまま
-            if (display != null)
-            {
-                display.ApplyOption();
-                _currentDisplay = display;
-                _tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel); 
-            }
+            _currentDisplay = display;
+            
+            // プロンプトと初期チャットの設定
+            var prompt = _prompt.GetPrompt(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
+            _currentDisplay.CurrentPrompt = prompt.Messages[0]; // TODO:CurrentDisplay.Optionsっていつ入力するんだっけ？入力画面出す前に_promptから取得も必要。
+            _chatHistory = GetChatHistory(prompt);
+
+            // その他の初期化
+            Tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel);
             _skipLogs = 0;
-            _chatLogs.Clear();
+            _api = _kernel.GetChatKernel(display.GptModel).GetService<IChatCompletion>();
+        }
+
+        // 開発用
+        // プロンプトだけ差し替える
+        public void InitializeChat(string prompts)
+        {
+            var prompt = _prompt.GetCustomChat(prompts, CurrentDisplay.Options);
+            _currentDisplay.CurrentPrompt = prompt.Messages[0];
+            _chatHistory = GetChatHistory(prompt);
+        }
+
+        /// <summary>
+        /// GetPromptしたOpenAIChatHistoryから、0番目のメッセージを除いた履歴を作成
+        /// </summary>
+        /// <param name="prompt">Option適用済みプロンプト</param>
+        /// <returns></returns>
+        private static OpenAIChatHistory GetChatHistory(OpenAIChatHistory prompt)
+        {
+            var chatHistory = new OpenAIChatHistory();
+            if (prompt.Messages.Count > 1)
+            {
+                for (int i = 1; i < prompt.Messages.Count; i++)
+                {
+                    chatHistory.Messages.Add(prompt.Messages[i]);
+                }
+            }
+            return chatHistory;
         }
 
         public async Task<string> ExecuteSemanticKernelAsync(string functionName ,string input)
@@ -137,132 +166,51 @@ namespace BostNex.Services.SemanticKernel
             return result;
         }
 
-        public async Task<StreamingChatCompletions> GetNextSessionAsync(string input)
+        public async Task<string> GetNextSessionAsync(string input)
         {
             // ユーザの入力をログに追加
-            _chatLogs.Add(new ChatMessage(ChatRole.User, input));
+            _chatHistory.AddUserMessage(input);
 
             // 返事を貰うか、原因が分からないエラーが来るまで実行
-            Response<StreamingChatCompletions> response = null!;
-            var count = 0;
+            string response = null!;
             while (response == null)
             {
                 try
                 {
                     // リクエストの作成。設定項目と、今までの会話ログをセット
-                    var allChat = GetAllChat();
+                    var allChat = GetCurrentChat();
 
                     // おおよそのトークン数を数える（正確ではない）
                     if (CountToken(allChat) > CurrentDisplay.TokenLimitByModel)
                     {
                         _skipLogs += 2;
-                        allChat = GetAllChat();
+                        allChat = GetCurrentChat();
                     }
 
-                    var chatCompletionsOptions = new ChatCompletionsOptions()
-                    {
-                        MaxTokens = _currentDisplay.MaxTokens, Temperature = _currentDisplay.Temperature, PresencePenalty = _currentDisplay.PresencePenalty 
-                    };
-                    chatCompletionsOptions.Messages.AddRange(allChat);
+                    var settings = new ChatRequestSettings { Temperature = _currentDisplay.Temperature, TopP = 1, PresencePenalty = _currentDisplay.PresencePenalty, FrequencyPenalty = 0, MaxTokens = 256 };    // いつもの設定
 
                     // 送信
-                    response = await Api.GetChatCompletionsStreamingAsync(
-                                deploymentOrModelName: _currentDisplay.GptModel,
-                                chatCompletionsOptions);
+                    response = await _api.GenerateMessageAsync(allChat, settings);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    if (ex.Message.Contains("maximum context length"))
-                    {
-                        // トークン数の上限を超えたので、ログを1個消して再送が良さそう
-                        _skipLogs += 2;
-                        count++;
-                        if (count > 4)
-                        {
-                            // ユーザの入力を削除して中断
-                            _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                            throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。");
-                        }
-                        continue;
-                    }
-                    else
-                    {
-                        // 原因不明のエラー
-                        // ユーザの入力を削除して中断
-                        _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                        throw;
-                    }
+                    // 原因不明のエラー
+                    // ユーザの入力を削除して中断
+                    _chatHistory.Messages.RemoveAt(_chatHistory.Messages.Count - 1);
+                    throw;
                 }
             }
 
-            // ストリーミングで受け取る
-            return response.Value;
+            // BOTからの返答
+            _chatHistory.AddAssistantMessage(response);
+
+            return response;
         }
 
-        #region code-davinci用
-        public async Task<Completions> GetNextCodeAsync(string input)
-        {
-            // ユーザの入力をログに追加
-            _chatLogs.Add(new ChatMessage(ChatRole.User, input));
-
-            // 返事を貰うか、原因が分からないエラーが来るまで実行
-            Response<Completions> response = null!;
-            var count = 0;
-            while (response == null)
-            {
-                try
-                {
-                    // リクエストの作成。設定項目と、今までの会話ログをセット
-                    var allChat = GetAllChat();
-                    var prompts = string.Join('\n', allChat.Select(x => x.Content)); 
-                    var completionsOptions =
-                        new CompletionsOptions()
-                        {
-                            Prompts = { prompts },
-                            MaxTokens = _currentDisplay.MaxTokens,
-                            Temperature = _currentDisplay.Temperature,
-                            PresencePenalty = _currentDisplay.PresencePenalty,
-                            NucleusSamplingFactor = 0.5f,
-                            FrequencyPenalty = 0,
-                            GenerationSampleCount = 1,
-                        };
-
-                    // 送信
-                    response = await Api.GetCompletionsAsync(_currentDisplay.GptModel, completionsOptions);
-                }
-                catch (Exception ex)
-                {
-                    if (ex.Message.Contains("maximum context length"))
-                    {
-                        // トークン数の上限を超えたので、ログを1個消して再送が良さそう
-                        _skipLogs += 2;
-                        count++;
-                        if (count > 4)
-                        {
-                            // ユーザの入力を削除して中断
-                            _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                            throw new Exception("リトライ回数を超えました。チャットログのトークンが多すぎるみたいです。"); // どうすればいいんだろう。ソース書いて貰う時とか困るよね。
-                        }
-                        continue;
-                    }
-                    else
-                    {
-                        // 原因不明のエラー
-                        // ユーザの入力を削除して中断
-                        _chatLogs.RemoveAt(_chatLogs.Count - 1);
-                        throw;
-                    }
-                }
-            }
-
-            // ストリーミングで受け取る
-            return response.Value;
-        }
-        #endregion
-
+        // TODO:Streamingじゃなくなったから要らなさそう。
         public void AddAiChatLog(string aiMessage)
         {
-            _chatLogs.Add(new ChatMessage(ChatRole.Assistant, aiMessage));
+            _chatHistory.AddAssistantMessage( aiMessage);
         }
         
         /// <summary>
@@ -270,28 +218,12 @@ namespace BostNex.Services.SemanticKernel
         /// プロンプトと件数を制限した会話ログを連結する
         /// </summary>
         /// <returns></returns>
-        private List<ChatMessage> GetAllChat()
+        private ChatHistory GetCurrentChat()
         {
-            var result = new List<ChatMessage>();
-            result.AddRange(_currentDisplay.CurrentPrompt);
-            result.AddRange(_chatLogs.Skip(Math.Max(0, _chatLogs.Count - _options.MaxChatLogCount) + _skipLogs));   //_chatLogsの件数を新しい方から指定件数取る
+            var result = new ChatHistory();
+            result.Messages.Add(_currentDisplay.CurrentPrompt);
+            result.Messages.AddRange(_chatHistory.Messages.Skip(Math.Max(0, _chatHistory.Messages.Count - _options.MaxChatLogCount) + _skipLogs));   //_chatLogsの件数を新しい方から指定件数取る
             return result;
-        }
-
-        // 開発用
-        // MasterPromptを上書きするので注意
-        public void InitializeChat(string prompts)
-        {
-            var result = new List<ChatMessage>();
-            var splited = prompts.Replace("\n", "\r\n").Split(_options.Separate);
-            foreach (var item in splited)
-            {
-                var role = result.Count % 2 == 0 ? ChatRole.Assistant : ChatRole.User;
-                role = result.Count == 0 ? ChatRole.System : role;
-                result.Add(new ChatMessage(role.ToString(), item));
-            }
-            _currentDisplay.MasterPrompt = result;
-            InitializeChat(_currentDisplay);
         }
 
         /// <summary>
@@ -301,16 +233,16 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         /// <param name="allChat"></param>
         /// <returns></returns>
-        private int CountToken(List<ChatMessage> allChat)
+        private int CountToken(ChatHistory allChat)
         {
-            var text = string.Join(',', allChat.Select(x => x.Role).ToArray()) + string.Join(',', allChat.Select(x => x.Content).ToArray());
+            var text = string.Join(',', allChat.Messages.Select(x => x.AuthorRole).ToArray()) + string.Join(',', allChat.Messages.Select(x => x.Content).ToArray());
             return CountToken(text);
         }
 
         // Tokenizerを使う。
         public int CountToken(string message)
         {
-            var encoded = _tokenizer?.Encode(message, Array.Empty<string>());
+            var encoded = Tokenizer?.Encode(message, Array.Empty<string>());
             return encoded!.Count;
         }
     }
@@ -332,7 +264,6 @@ namespace BostNex.Services.SemanticKernel
         public int MaxChatLogCount { get; set; } = 10;
 
         /// <summary>
-        /// 開発用
         /// プロンプトの区切りを示す文字列
         /// </summary>
         public string Separate { get; set; } = "#end#";

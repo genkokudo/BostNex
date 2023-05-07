@@ -14,18 +14,19 @@
 @using BostNex.Pages.Component
 @using BostNexShared.Dto
 @using Microsoft.Extensions.Options
+@using static Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory;
 @inject IChatService _chat
-@inject IChatPromptService _prompt
+@inject IOldChatPromptService _prompt
 @inject IChatFormatService _format
 @inject IJSRuntime JS
 @inject IOptions<ChatServiceOption> _options
 @inject HotKeys HotKeys
 
 @* デバッグモード *@
-<DebugPanel IsVisible="_display != null && _format.IsDebugMode">
+<DebugPanel IsVisible="_display != null && _format.IsDebugMode && !_display.IsSemanticKernel">
     <Collapse @bind-IsCollapsed="IsCollapsed">
         @* 現在のチャットログ表示 *@
-        <ChatGptLogPanel Logs="_chat.ChatLog" />
+        <ChatGptLogPanel2 Logs="_chat.ChatLog" />
         @* プロンプト入力欄 *@
         <PromptPanel OnClickCallback="ResetPrompt" @bind-Text="ResetPromptText">
             <h3>プロンプトの入力</h3>
@@ -33,6 +34,7 @@
         </PromptPanel>
     </Collapse>
 </DebugPanel>
+
 
 <PageTitle>@(_display?.Title ?? "Loading")</PageTitle>
 
@@ -62,7 +64,7 @@ else if (_display == null)
 @* セッションの表示 *@
 @{
     // 現在有効なチャットに含まれているか確認する
-    var currentChat = _chat.ChatLog.Where(x => x.Role == ChatRole.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
+    var currentChat = _chat.ChatLog.Messages.Where(x => x.AuthorRole == AuthorRoles.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
         if (!log.IsDisposed && log.StreamingResponse == null)
@@ -91,7 +93,7 @@ else if (_display == null)
     InputChatPanel? _inputChatPanel = null!;    // コンポーネントの独立性を保ちつつホットキー対応させるため、refにする。
 
     // サーバから取得した画面情報
-    private Display? _display;
+    private BostNex.Services.SemanticKernel.Display? _display;
 
     // デバッグモード用
     public bool IsCollapsed { get; set; } = true;
@@ -210,7 +212,7 @@ else if (_display == null)
             else
             {
                 var response = await _chat.GetNextSessionAsync(input);
-                backlogs.Add(new ChatSession { Text = input, StreamingResponse = response });
+                backlogs.Add(new ChatSession { Text = input, AiResponse = response });
             }
             IsSubmitted = false;
             StateHasChanged();

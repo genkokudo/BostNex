@@ -1,4 +1,4 @@
-﻿@inject IChatFormatService _format;
+﻿@inject IOldChatFormatService _format;
 @using BostNex.Services
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -32,6 +32,18 @@
             {
                 <div class="nav-item px-3 ms-5">
                     <NavLink class="nav-link" href="@("chat/" + @item.Address)">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> @item.Title
+                    </NavLink>
+                </div>
+            }
+        }
+        @if (pages != null && expandSubNav)
+        {
+            // TODO:あとでけす
+            foreach (var item in pages)
+            {
+                <div class="nav-item px-3 ms-5">
+                    <NavLink class="nav-link" href="@("chat2/" + @item.Address)">
                         <span class="oi oi-list-rich" aria-hidden="true"></span> @item.Title
                     </NavLink>
                 </div>

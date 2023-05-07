@@ -4,8 +4,8 @@
 @using Markdig
 @using System.Text.RegularExpressions
 @inject IOpenAiService _openAi
-@inject IChatPromptService _chat
-@inject IChatFormatService _format
+@inject IOldChatPromptService _chat
+@inject IOldChatFormatService _format
 
 @if (Session == null)
 {
