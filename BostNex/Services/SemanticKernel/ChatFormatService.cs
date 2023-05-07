@@ -386,7 +386,7 @@ namespace BostNex.Services.SemanticKernel
         private string GetTokenModel(ModelType type)
         {
             var result = "gpt-3.5-turbo";
-            if (type.ToString().Contains("4"))
+            if (type.ToString().Contains('4'))
             {
                 result = "gpt-4";   // むっちゃ適当
             }

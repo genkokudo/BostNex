@@ -112,7 +112,7 @@ namespace BostNex.Services.SemanticKernel
             
             // プロンプトと初期チャットの設定
             var prompt = _prompt.GetPrompt(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
-            _currentDisplay.CurrentPrompt = prompt.Messages[0]; // TODO:CurrentDisplay.Optionsっていつ入力するんだっけ？入力画面出す前に_promptから取得も必要。
+            _currentDisplay.CurrentPrompt = prompt.Messages.Count > 0 ? prompt.Messages[0] : new ChatHistory.Message(ChatHistory.AuthorRoles.System, string.Empty); // TODO:CurrentDisplay.Optionsっていつ入力するんだっけ？入力画面出す前に_promptから取得も必要。
             _chatHistory = GetChatHistory(prompt);
 
             // その他の初期化

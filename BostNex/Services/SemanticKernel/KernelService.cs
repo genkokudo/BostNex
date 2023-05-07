@@ -129,28 +129,28 @@ namespace BostNex.Services.SemanticKernel
                     {
                         return null!;
                     }
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[0], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[0], _options.AzureUri, _options.AzureApiKey);
                     break;
                 case ModelType.Azure4:
                     if (_chatOptions.Models.Length <= 1)
                     {
                         return null!;
                     }
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[1], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[1], _options.AzureUri, _options.AzureApiKey);
                     break;
                 case ModelType.Azure432k:
                     if (_chatOptions.Models.Length <= 2)
                     {
                         return null!;
                     }
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[2], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[2], _options.AzureUri, _options.AzureApiKey);
                     break;
                 case ModelType.AzureCode:
                     if (_chatOptions.Models.Length <= 3)
                     {
                         return null!;
-                    }
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), _chatOptions.Models[3], _options.AzureUri, _options.AzureApiKey);
+                    }   // 多分、AddAzureTextEmbeddingGenerationServiceが正解。
+                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[3], _options.AzureUri, _options.AzureApiKey);
                     break;
                 default:
                     break;

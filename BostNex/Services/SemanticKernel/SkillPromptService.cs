@@ -1,9 +1,5 @@
-﻿using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
+﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.SemanticFunctions;
-using System.Reflection.Metadata;
 
 namespace BostNex.Services.SemanticKernel
 {
@@ -11,6 +7,8 @@ namespace BostNex.Services.SemanticKernel
     /// <summary>
     /// 使用する可能性のあるSkillを登録する
     /// 取り敢えずジャンル分けしておく
+    /// 
+    /// ※現在の所、3.5のみ使用する。
     /// </summary>
     public interface ISkillPromptService
     {
@@ -34,7 +32,7 @@ namespace BostNex.Services.SemanticKernel
     public class SkillPromptService : ISkillPromptService
     {
         private readonly bool IsUseAzureOpenAI = false;                 // 手で書き換えてね。
-        private readonly string _prompt = """
+        private readonly string _summarize = """
 # 命令書
 あなたはプロの編集者です。以下の制約条件に従って、入力する文章を要約してください。
 # 制約条件
@@ -59,7 +57,7 @@ namespace BostNex.Services.SemanticKernel
         private void RegisterDarkMagicSkill(IKernel kernel)
         {
             // 関数を登録：要約
-            kernel.CreateSemanticFunction(_prompt, new PromptTemplateConfig
+            kernel.CreateSemanticFunction(_summarize, new PromptTemplateConfig
             {
                 // temperatureみたいなパラメータはCompletionで設定
                 // Type は"completion", "embeddings"とかを設定する。
