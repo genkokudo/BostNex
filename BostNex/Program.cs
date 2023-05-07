@@ -2,15 +2,10 @@ using BostNex.Areas.Identity;
 using BostNex.Data;
 using BostNex.Services;
 using BostNex.Services.SemanticKernel;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.AzureAppServices;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,12 +26,12 @@ builder.Services.AddTransient<IChatPromptService, ChatPromptService>();
 builder.Services.AddTransient<IHelperService, HelperService>();
 builder.Services.AddTransient<IChatFormatService, ChatFormatService>();
 builder.Services.AddScoped<IChatService, ChatService>();                // Scopedとすることでリロードしたらセッション切れるようにする
-builder.Services.AddTransient<ISummaryService, SummaryService>();
+builder.Services.AddTransient<ISkillService, SkillService>();
 builder.Services.Configure<AesOption>(builder.Configuration.GetSection("AesSettings"));
 builder.Services.Configure<ChatServiceOption>(builder.Configuration.GetSection("OpenAiSettings"));      // 名前を変える。ChatOptionとの統合を検討する
 builder.Services.Configure<ChatOption>(builder.Configuration.GetSection("ChatSettings"));
 builder.Services.AddSingleton<IKernelService, KernelService>();
-builder.Services.AddTransient<ISkillService, SkillService>();
+builder.Services.AddTransient<ISkillPromptService, SkillPromptService>();
 builder.Services.AddHotKeys2(); // キーボードショートカットを入れる
 var app = builder.Build();
 

@@ -1,91 +1,86 @@
-﻿using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticKernel.SemanticFunctions;
-using System.Reflection.Metadata;
+﻿using Microsoft.SemanticKernel.Orchestration;
 
 namespace BostNex.Services.SemanticKernel
 {
+    // TODO:要約だけでなく、いろんな関数を呼べるようにしよう
 
     /// <summary>
-    /// 使用する可能性のあるSkillを登録する
-    /// 取り敢えずジャンル分けしておく
+    /// Semantic Kernelを使用してスキルを登録し、管理する。
     /// </summary>
     public interface ISkillService
     {
         /// <summary>
-        /// 存在するスキルを全て登録する。
+        /// 要約を作ってくれる
         /// </summary>
-        /// <param name="kernel"></param>
-        public void RegisterAllSkill(IKernel kernel);
-    }
-    public enum SkillCategory
-    {
-        Test,
-        DarkMagic
-    }
-
-    public enum DarkMagicFunction
-    {
-        Summarize
+        /// <param name="function">関数名</param>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public Task<string> Execute(string function, string input);
     }
 
     public class SkillService : ISkillService
     {
-        private readonly bool IsUseAzureOpenAI = false;                 // 手で書き換えてね。
-        private readonly string _prompt = """
-# 命令書
-あなたはプロの編集者です。以下の制約条件に従って、入力する文章を要約してください。
-# 制約条件
-- 重要なキーワードを取りこぼさない。
-- 文章の意味を変更しない。
-- 架空の表現や言葉を使用しない。
-- 入力する文章を150文字以内にまとめて出力。
-- 要約した文章の句読点を含めた文字数を出力。
-- 文章中の数値には変更を加えない。
-# 入力する文章
-{{$input}}
-# 出力形式
-要約した文章:
-出力した文章の句読点を含めた文字数:
-""";
+        private readonly string _skillName = "DarkMagic";
+        private readonly IKernelService _kernel;
 
-    //    private readonly string _prompt = """
-    //*****
-    //{{$input}}
-    //*****
-
-    //長すぎるので1文で最小限の文字数で要約してください。
-
-    //要約:
-
-    //""";
-
-        public void RegisterAllSkill(IKernel kernel)
+        public SkillService(IKernelService kernel)
         {
-            RegisterDarkMagicSkill(kernel);
+            _kernel = kernel;
+
         }
 
-        private void RegisterDarkMagicSkill(IKernel kernel)
+        public async Task<string> Execute(string function, string input)
         {
-            // 関数を登録：要約
-            kernel.CreateSemanticFunction(_prompt, new PromptTemplateConfig
-            {
-                // temperatureみたいなパラメータはCompletionで設定
-                // Type は"completion", "embeddings"とかを設定する。
-                // Input で、パラメータを設定する
-                DefaultServices = { IsUseAzureOpenAI ? ModelType.Azure35.ToString() : ModelType.OpenAIGpt35Turbo.ToString() }
-            }, functionName: DarkMagicFunction.Summarize.ToString(), skillName: SkillCategory.DarkMagic.ToString());       // skillNameを指定しない場合、グローバル関数となる。要するにskillはスコープの役割。
+            var variables = new ContextVariables(input);
+            variables["target"] = "ワイン";
+            variables["keywords"] = "一陣の風、芳醇な香り、命を吹き込んだ";
+            variables["viewpoints"] = "高齢者へのリーチ";
+
+            var context = await _kernel.Kernel.RunAsync(variables, _kernel.Kernel.Func(_skillName, function));   // RunAsyncはISKFunction[]を渡すしかないみたい。
+            Console.WriteLine("## 結果");
+            Console.WriteLine(context);
+
+            return context.Result;
         }
 
-        // 作成した関数の取得方法
-        //var test = _kernel.Kernel.Func("skillName", "aaaafunctionName");      // skillnameは
-        //var skillstest = _kernel.Kernel.Skills; // ここからも取れる。登録一覧を取得するのはできないっぽい。
-        //var aaaa = skillstest.GetSemanticFunction("skillName", "aaaafunctionName");
-        //var bbbb = skillstest.GetSemanticFunction("bbbbfunctionName");        // グローバル関数の取得は、skillNameを指定しない。
-        //var cccc = skillstest.GetFunction("bbbbfunctionName");
-        // Semantic以外に、Nativeがある。これは、C#の処理を挟んだ関数だと思われる。
+
+        // パラメータの付け方は？
+        // プロンプトにこういうのを追加。 {{ $text }} 
+        // CreateSemanticFunctionの引数に追加して、その中のInputに、
+        // Input = new PromptTemplateConfig.InputConfig { Parameters = { new PromptTemplateConfig.InputParameter { Name = "text", Description = "パラメータのコメント", DefaultValue = "文章本体"} } }
+        // ってやるとできる。
+
+        // {{ $input }} は？
+        // 1 つ前の出力が {{ $input }} 変数に入る。
+        // なので、いくつか$inputを入れる方法がある。
+
+        // 1. summarizeで関数を作り、$tsxt等のパラメータの設定した状態でInvokeAsyncすると、その引数が$inputになる。
+        // 2. _kernel.RunAsync(vars, summarize); で関数を呼ぶ時に、vars はContextVariablesとなるが、その引数が$inputになる。
+        // 3. ContextVariablesはDictionaryで各パラメータを登録できる。それで、kernel.RunAsyncで連続で関数を呼び出し（可変長引数）たときに、その出力が$inputになる。
+
+        // プロンプトって関数にして登録できるの？
+        // できる。
+        // kernel.CreateSemanticFunction(_prompt);
+
+        // チャットを作る場合は例えば、$"\nHuman: {input}\nMelody: {answer}\n"みたいなのを追加していく。
+
+        // Planは使わなくていいだろうと思う。
+        // →問題を入力すると、登録したスキルを組み合わせて、自動的に問題解決の出力まで作ってくれる機能。
+
+        // ネイティブスキルとは？
+        // 一定のお約束に従った C# のクラスで、スキルの関数として利用できます。
+        // （プロンプトで出来ることはなるべくプロンプトでやってあげた方が良いです。）
+        // https://zenn.dev/microsoft/articles/semantic-kernel-3
+
+        // 登録した関数だったら、プロンプトに代入してくれる
+        // 例えば、{{ DarkMagic.Summarize $Name }} というプロンプトを作ると、Summarizeに$Nameをinputした結果が代入される。
+
+
+
+
+
+
+
     }
 
 }

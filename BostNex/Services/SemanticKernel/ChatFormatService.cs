@@ -1,9 +1,6 @@
-﻿using Azure.AI.OpenAI;
-using BostNex.Services.SemanticKernel;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 
 namespace BostNex.Services.SemanticKernel
 {

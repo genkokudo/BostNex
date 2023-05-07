@@ -67,7 +67,7 @@ namespace BostNex.Services.SemanticKernel
         private readonly ChatServiceOption _options;
         private readonly ChatOption _chatOptions;
 
-        public KernelService(IOptions<ChatServiceOption> options, IOptions<ChatOption> chatOptions, ISkillService skill)
+        public KernelService(IOptions<ChatServiceOption> options, IOptions<ChatOption> chatOptions, ISkillPromptService skill)
         {
             _options = options.Value;
             _chatOptions = chatOptions.Value;

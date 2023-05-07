@@ -1,13 +1,7 @@
-﻿using Azure;
-using Azure.AI.OpenAI;
-using Microsoft.DeepDev;
+﻿using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
-using NuGet.Configuration;
-using NuGet.Packaging;
 
 namespace BostNex.Services.SemanticKernel
 {
@@ -47,12 +41,6 @@ namespace BostNex.Services.SemanticKernel
         /// プロンプトもここに格納
         /// </summary>
         public Display CurrentDisplay { get; }
-
-        /// <summary>
-        /// ChatGPTからの返答をログに登録する。
-        /// </summary>
-        /// <param name="aiMessage"></param>
-        public void AddAiChatLog(string aiMessage);
 
         /// <summary>
         /// トークン数を数える
@@ -102,7 +90,7 @@ namespace BostNex.Services.SemanticKernel
         /// <summary>
         /// Semantic Kernel関数を呼び出す
         /// </summary>
-        private readonly ISummaryService _semantic;
+        private readonly ISkillService _semantic;
 
         /// <summary>
         /// オプションを取得
@@ -110,7 +98,7 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         private readonly IChatPromptService _prompt;
 
-        public ChatService(IOptions<ChatServiceOption> options, ISummaryService semantic, IKernelService kernel, IChatPromptService prompt)
+        public ChatService(IOptions<ChatServiceOption> options, ISkillService semantic, IKernelService kernel, IChatPromptService prompt)
         {
             _semantic = semantic;
             _options = options.Value;
@@ -207,12 +195,6 @@ namespace BostNex.Services.SemanticKernel
             return response;
         }
 
-        // TODO:Streamingじゃなくなったから要らなさそう。
-        public void AddAiChatLog(string aiMessage)
-        {
-            _chatHistory.AddAssistantMessage( aiMessage);
-        }
-        
         /// <summary>
         /// 現状、GPTに送るチャットログを取得する
         /// プロンプトと件数を制限した会話ログを連結する

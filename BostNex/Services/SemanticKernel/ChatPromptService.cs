@@ -1,5 +1,4 @@
-﻿using Azure.AI.OpenAI;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 
 namespace BostNex.Services.SemanticKernel
