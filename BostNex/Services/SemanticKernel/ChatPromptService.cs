@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
+using Microsoft.SemanticKernel.Orchestration;
+using Microsoft.SemanticKernel.TemplateEngine;
 
 namespace BostNex.Services.SemanticKernel
 {
@@ -14,7 +17,7 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="key"></param>
         /// <param name="options">設定</param>
         /// <returns></returns>
-        public OpenAIChatHistory GetPrompt(string key, List<DisplayOption>? options);
+        public Task<OpenAIChatHistory> GetPromptAsync(string key, List<DisplayOption>? options);
 
         /// <summary>
         /// そのチャットの設定項目を取得
@@ -30,7 +33,7 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="prompt"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public OpenAIChatHistory GetCustomChat(string prompt, List<DisplayOption>? options);
+        public Task<OpenAIChatHistory> GetCustomChatAsync(string prompt, List<DisplayOption>? options);
     }
 
     public class ChatPromptService : IChatPromptService
@@ -64,16 +67,15 @@ namespace BostNex.Services.SemanticKernel
             };
         }
 
-        // TODO:Optionsもこっちに持たせて、GetPromptで適用して取得で良さそう。
-
-        public OpenAIChatHistory GetPrompt(string key, List<DisplayOption>? options)
+        public async Task<OpenAIChatHistory> GetPromptAsync(string key, List<DisplayOption>? options)
         {
             Chat.TryGetValue(key, out var prompt);
             if (string.IsNullOrWhiteSpace(prompt))
             {
                 return new OpenAIChatHistory();
             }
-            return GetCustomChat(prompt, options);
+            // オプションを適用したチャット
+            return await GetCustomChatAsync(prompt, options);
         }
 
         public List<DisplayOption> GetOptions(string key)
@@ -82,13 +84,35 @@ namespace BostNex.Services.SemanticKernel
             return options ?? new List<DisplayOption>();
         }
 
-        public OpenAIChatHistory GetCustomChat(string prompt, List<DisplayOption>? options)
+        // TODO:処理が2回呼ばれるので改善すること
+        // ・最初の読み込みでInitializeChatを呼ぶ
+        // ・GetPromptがオプション無しで呼ばれる
+        // ・オプション入れるとまたInitializeChatを呼ぶ
+        // ・GetPromptがオプション有りで呼ばれる
+
+        // このように修正
+        // ・最初の読み込みでInitializeChatを呼ぶが、最初にGetOptionsを呼んで、オプションを取る。オプションが無ければSubmitOption（プロンプト取得＆GetCustomChat）して開始。
+        // ・オプションがあれば入力させる。オプション入れたら、InitializeChatじゃなくてSubmitOptionメソッドを作ってSubmitOption（プロンプト取得＆GetCustomChat）して開始する。
+        // ・SubmitOption：プロンプト取得＆GetCustomChat
+
+
+        public async Task<OpenAIChatHistory> GetCustomChatAsync(string prompt, List<DisplayOption>? options)
         {
             // TODO:Optionsを適用する（未実装）
             // https://zenn.dev/microsoft/articles/semantic-kernel-7
 
+            var renderedPrompt = prompt;
+            if (options != null && options.Count > 0)
+            {
+                var templateEngine = new PromptTemplateEngine();
+                //var context = kernel.CreateNewContext();        // TODO:Kernelが必要。要らないけどスキル参照するために仕方なく。
+                //context.Variables.Update("にゅうりょく！");    // これは$Inputになる。
+                //context.Variables["name"] = "田中 太郎"; // コンテキストに変数を追加
+                //renderedPrompt = await templateEngine.RenderAsync(prompt, context);
+            }
+
             // #end#で区切って初期チャットを作成する
-            var separated = prompt.Split(_separate);
+            var separated = renderedPrompt.Split(_separate);
 
             var chat = new OpenAIChatHistory(separated[0]);
             for (int i = 1; i < separated.Length; i += 2)
@@ -106,8 +130,22 @@ namespace BostNex.Services.SemanticKernel
     /// </summary>
     public class DisplayOption
     {
+        /// <summary>
+        /// 画面に表示するオプション名
+        /// </summary>
         public string Subject { get; set; } = "あなたの名前";
+
+        /// <summary>
+        /// テンプレートエンジンの変数名
+        /// {{ $name }} とかになる
+        /// </summary>
+        public string Key { get; set; } = "name";
+
+        /// <summary>
+        /// 入力値
+        /// </summary>
         public string Value { get; set; } = "";
+
         /// <summary>
         /// 入力行数
         /// 2以上だとマルチライン入力欄にする

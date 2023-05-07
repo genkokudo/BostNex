@@ -10,6 +10,7 @@ namespace BostNex.Services.SemanticKernel
         /// <summary>
         /// これまでのやり取りをリセットして最初からにする
         /// プロンプトがあれば再設定する、無ければそのまま
+        /// オプション入力完了時も呼ばれる
         /// </summary>
         /// <param name="prompt">プロンプト</param>
         public void InitializeChat(Display prompts);
@@ -106,14 +107,15 @@ namespace BostNex.Services.SemanticKernel
             _prompt = prompt;
         }
         
-        public void InitializeChat(Display display)
+        public async void InitializeChat(Display display)
         {
+            // 入力画面出す前に_promptから取得し、入力完了時もここを実行する（始まるまでに2回呼んじゃう）
             _currentDisplay = display;
             
             // プロンプトと初期チャットの設定
-            var prompt = _prompt.GetPrompt(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
-            _currentDisplay.CurrentPrompt = prompt.Messages.Count > 0 ? prompt.Messages[0] : new ChatHistory.Message(ChatHistory.AuthorRoles.System, string.Empty); // TODO:CurrentDisplay.Optionsっていつ入力するんだっけ？入力画面出す前に_promptから取得も必要。
-            _chatHistory = GetChatHistory(prompt);
+            var prompt = await _prompt.GetPromptAsync(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
+            _currentDisplay.CurrentPrompt = prompt.Messages.Count > 0 ? prompt.Messages[0] : new ChatHistory.Message(ChatHistory.AuthorRoles.System, string.Empty);
+            _chatHistory = GetChatHistory(prompt);      // 初期チャット設定（無い場合もある）
 
             // その他の初期化
             Tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel);
@@ -123,9 +125,9 @@ namespace BostNex.Services.SemanticKernel
 
         // 開発用
         // プロンプトだけ差し替える
-        public void InitializeChat(string prompts)
+        public async void InitializeChat(string prompts)
         {
-            var prompt = _prompt.GetCustomChat(prompts, CurrentDisplay.Options);
+            var prompt = await _prompt.GetCustomChatAsync(prompts, CurrentDisplay.Options);
             _currentDisplay.CurrentPrompt = prompt.Messages[0];
             _chatHistory = GetChatHistory(prompt);
         }
