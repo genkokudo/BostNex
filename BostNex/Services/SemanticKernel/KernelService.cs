@@ -85,9 +85,9 @@ namespace BostNex.Services.SemanticKernel
             _kernel = Microsoft.SemanticKernel.Kernel.Builder.Build();
             // カーネルを作成、複数登録できる
             // OpenAI
-            _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt35Turbo.ToString(), "gpt-3.5-turbo", _options.ApiKey);
-            _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt4.ToString(), "gpt-4", _options.ApiKey);
-            _kernel.Config.AddOpenAIChatCompletionService(ModelType.OpenAIGpt40314.ToString(), "gpt-4-0314", _options.ApiKey);
+            _kernel.Config.AddOpenAIChatCompletionService("gpt-3.5-turbo", _options.ApiKey, serviceId: ModelType.OpenAIGpt35Turbo.ToString());
+            _kernel.Config.AddOpenAIChatCompletionService("gpt-4", _options.ApiKey, serviceId: ModelType.OpenAIGpt4.ToString());
+            _kernel.Config.AddOpenAIChatCompletionService("gpt-4-0314", _options.ApiKey, serviceId: ModelType.OpenAIGpt40314.ToString());
 
             // Azure
             var azureModels = new ModelType[] { ModelType.Azure35, ModelType.Azure4, ModelType.Azure432k, ModelType.AzureCode };
@@ -97,10 +97,11 @@ namespace BostNex.Services.SemanticKernel
                 {
                     break;
                 }
-                _kernel.Config.AddAzureTextCompletionService(azureModels[i].ToString(),
+                _kernel.Config.AddAzureTextCompletionService(
                     _chatOptions.Models[i],
                     _options.AzureUri,
-                    _options.AzureApiKey);  // new AzureCliCredential()を使っても良い
+                    _options.AzureApiKey,  // new AzureCliCredential()を使っても良い
+                    serviceId: azureModels[i].ToString());
             }
         }
 
@@ -116,41 +117,41 @@ namespace BostNex.Services.SemanticKernel
             switch (type)
             {
                 case ModelType.OpenAIGpt35Turbo:
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), "gpt-3.5-turbo", _options.ApiKey);
+                    kernel.Config.AddOpenAIChatCompletionService("gpt-3.5-turbo", _options.ApiKey, serviceId: type.ToString());
                     break;
                 case ModelType.OpenAIGpt4:
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), "gpt-4", _options.ApiKey);
+                    kernel.Config.AddOpenAIChatCompletionService("gpt-4", _options.ApiKey, serviceId: type.ToString());
                     break;
                 case ModelType.OpenAIGpt40314:
-                    kernel.Config.AddOpenAIChatCompletionService(type.ToString(), "gpt-4-0314", _options.ApiKey);
+                    kernel.Config.AddOpenAIChatCompletionService("gpt-4-0314", _options.ApiKey, serviceId: type.ToString());
                     break;
                 case ModelType.Azure35:
                     if (_chatOptions.Models.Length <= 0)
                     {
                         return null!;
                     }
-                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[0], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(_chatOptions.Models[0], _options.AzureUri, _options.AzureApiKey, serviceId: type.ToString());
                     break;
                 case ModelType.Azure4:
                     if (_chatOptions.Models.Length <= 1)
                     {
                         return null!;
                     }
-                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[1], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(_chatOptions.Models[1], _options.AzureUri, _options.AzureApiKey, serviceId: type.ToString());
                     break;
                 case ModelType.Azure432k:
                     if (_chatOptions.Models.Length <= 2)
                     {
                         return null!;
                     }
-                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[2], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(_chatOptions.Models[2], _options.AzureUri, _options.AzureApiKey, serviceId: type.ToString());
                     break;
                 case ModelType.AzureCode:
                     if (_chatOptions.Models.Length <= 3)
                     {
                         return null!;
                     }   // 多分、AddAzureTextEmbeddingGenerationServiceが正解。
-                    kernel.Config.AddAzureChatCompletionService(type.ToString(), _chatOptions.Models[3], _options.AzureUri, _options.AzureApiKey);
+                    kernel.Config.AddAzureChatCompletionService(_chatOptions.Models[3], _options.AzureUri, _options.AzureApiKey, serviceId: type.ToString());
                     break;
                 default:
                     break;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 
@@ -182,11 +183,15 @@ namespace BostNex.Services.SemanticKernel
                     // 送信
                     response = await _api.GenerateMessageAsync(allChat, settings);
                 }
-                catch
+                catch(AIException ex)
                 {
                     // 原因不明のエラー
                     // ユーザの入力を削除して中断
                     _chatHistory.Messages.RemoveAt(_chatHistory.Messages.Count - 1);
+                    if (ex.Detail != null && ex.Detail.Contains("This model's maximum context length"))
+                    {
+                        _skipLogs += 2;
+                    }
                     throw;
                 }
             }
