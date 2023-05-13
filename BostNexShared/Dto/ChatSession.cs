@@ -18,6 +18,12 @@
         public string AiResponse { get; set; } = string.Empty;
 
         /// <summary>
+        /// AiResponseが返ってくるストリーミングへの参照
+        /// ストリーミングが終わったらnull
+        /// </summary>
+        public IAsyncEnumerable<string> StreamingResponse { get; set; } = null!;
+
+        /// <summary>
         /// 古くなってAPI送信対象から外れていたらtrue
         /// </summary>
         public bool IsDisposed = false;

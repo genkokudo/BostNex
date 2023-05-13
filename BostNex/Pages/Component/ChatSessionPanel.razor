@@ -1,8 +1,10 @@
 ﻿@* ChatGPTとのやり取り1回分を表すコンポーネント *@
 @using BostNex.Services
+@using BostNex.Services.SemanticKernel;
 @using BostNexShared.Dto
 @using Markdig
 @using System.Text.RegularExpressions
+@inject IChatService _openAi
 
 @if (Session == null)
 {
@@ -36,8 +38,30 @@
     [EditorRequired]
     public ChatSession Session { get; set; } = null!;
 
+    /// <summary>
+    /// ストリーミングが終わった時の処理
+    /// </summary>
+    [Parameter]
+    public Action OnStreamFinished { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
+        if (Session == null) throw new ArgumentNullException(nameof(Session));
+        if (Session.StreamingResponse == null) return;
+
+        // ストリーミングで受け取る
+        await foreach (var message in Session.StreamingResponse)
+        {
+            Session.AiResponse += message;
+            StateHasChanged();
+        }
+        // 終わったら登録
+        Session.StreamingResponse = null!;
+        _openAi.AddAssistantMessage(Session.AiResponse);
+
+        // 終わった時の処理
+        OnStreamFinished?.Invoke();
+
         await base.OnInitializedAsync();
     }
 

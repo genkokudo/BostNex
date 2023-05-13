@@ -1,4 +1,5 @@
-﻿using Microsoft.DeepDev;
+﻿using Azure;
+using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
@@ -30,7 +31,7 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         /// <param name="request"></param>
         /// <returns>AIからの返答</returns>
-        public Task<string> GetNextSessionAsync(string input);
+        public IAsyncEnumerable<string> GetNextSessionStream(string input);
 
         /// <summary>
         /// 今までのチャットログを取得する
@@ -57,6 +58,9 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="input"></param>
         /// <returns></returns>
         public Task<string> ExecuteSemanticKernelAsync(string functionName, string input);
+
+        // BOTからの返答を登録
+        public void AddAssistantMessage(string message);
     }
 
     public class ChatService : IChatService
@@ -108,13 +112,13 @@ namespace BostNex.Services.SemanticKernel
             _prompt = prompt;
         }
         
-        public async void InitializeChat(Display display)
+        public void InitializeChat(Display display)
         {
             // 入力画面出す前に_promptから取得し、入力完了時もここを実行する（始まるまでに2回呼んじゃう）
             _currentDisplay = display;
             
             // プロンプトと初期チャットの設定
-            var prompt = await _prompt.GetPromptAsync(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
+            var prompt = _prompt.GetPrompt(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
             _currentDisplay.CurrentPrompt = prompt.Messages.Count > 0 ? prompt.Messages[0] : new ChatHistory.Message(ChatHistory.AuthorRoles.System, string.Empty);
             _chatHistory = GetChatHistory(prompt);      // 初期チャット設定（無い場合もある）
 
@@ -126,9 +130,9 @@ namespace BostNex.Services.SemanticKernel
 
         // 開発用
         // プロンプトだけ差し替える
-        public async void InitializeChat(string prompts)
+        public void InitializeChat(string prompts)
         {
-            var prompt = await _prompt.GetCustomChatAsync(prompts, CurrentDisplay.Options);
+            var prompt = _prompt.GetCustomChat(prompts, CurrentDisplay.Options);
             _currentDisplay.CurrentPrompt = prompt.Messages[0];
             _chatHistory = GetChatHistory(prompt);
         }
@@ -157,13 +161,13 @@ namespace BostNex.Services.SemanticKernel
             return result;
         }
 
-        public async Task<string> GetNextSessionAsync(string input)
+        public IAsyncEnumerable<string> GetNextSessionStream(string input)
         {
             // ユーザの入力をログに追加
             _chatHistory.AddUserMessage(input);
 
             // 返事を貰うか、原因が分からないエラーが来るまで実行
-            string response = null!;
+            IAsyncEnumerable<string> response = null!;
             while (response == null)
             {
                 try
@@ -181,7 +185,7 @@ namespace BostNex.Services.SemanticKernel
                     var settings = new ChatRequestSettings { Temperature = _currentDisplay.Temperature, TopP = 1, PresencePenalty = _currentDisplay.PresencePenalty, FrequencyPenalty = 0, MaxTokens = 256 };    // いつもの設定
 
                     // 送信
-                    response = await _api.GenerateMessageAsync(allChat, settings);
+                    response = _api.GenerateMessageStreamAsync(allChat, settings);
                 }
                 catch(AIException ex)
                 {
@@ -196,10 +200,13 @@ namespace BostNex.Services.SemanticKernel
                 }
             }
 
-            // BOTからの返答
-            _chatHistory.AddAssistantMessage(response);
-
             return response;
+        }
+
+        // BOTからの返答を登録
+        public void AddAssistantMessage(string message)
+        {
+            _chatHistory.AddAssistantMessage(message);
         }
 
         /// <summary>

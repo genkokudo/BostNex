@@ -62,13 +62,13 @@ else if (_display == null)
     var currentChat = _chat.ChatLog.Messages.Where(x => x.AuthorRole == AuthorRoles.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
-        if (!log.IsDisposed)
+        if (!log.IsDisposed && log.StreamingResponse == null)
         {
             // 破棄判定
             log.IsDisposed = !currentChat.Contains(log.AiResponse);
         }
         //  会話の進行ごとに、繰り返して表示する
-        <ChatSessionPanel Session="log" />
+        <ChatSessionPanel Session="log" OnStreamFinished="OnStreamFinished" />
     }
 }
 
@@ -199,8 +199,16 @@ else if (_display == null)
         try
         {
             // チャット表示を追加
-            string response = _display!.IsSemanticKernel ? await _chat.ExecuteSemanticKernelAsync(_display.SemanticFunctionName, input) : await _chat.GetNextSessionAsync(input);
-            backlogs.Add(new ChatSession { Text = input, AiResponse = response });
+            if (_display!.IsSemanticKernel)
+            {
+                var response = await _chat.ExecuteSemanticKernelAsync(_display.SemanticFunctionName, input);
+                backlogs.Add(new ChatSession { Text = input, AiResponse = response });
+            }
+            else
+            {
+                var response =  _chat.GetNextSessionStream(input);
+                backlogs.Add(new ChatSession { Text = input, StreamingResponse = response });
+            }
             IsSubmitted = false;
             StateHasChanged();
 
@@ -252,6 +260,14 @@ else if (_display == null)
     private void Back()
     {
         if (IsSubmitted) return;
+    }
+
+    /// <summary>
+    /// 各チャット表示でストリーミングが終わった時の処理
+    /// </summary>
+    private async void OnStreamFinished()
+    {
+        await GotoBottomAsync();
     }
 }
 

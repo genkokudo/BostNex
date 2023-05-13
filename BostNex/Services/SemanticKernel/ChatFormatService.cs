@@ -213,6 +213,7 @@ namespace BostNex.Services.SemanticKernel
                 Placeholder = "怪人め、許さないぞ",
                 SubmitText = "闘う",
                 MasterPromptKey = "Villain",
+                //GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = true
             });
             _pageData.Add("Geed2", new Display
@@ -225,6 +226,7 @@ namespace BostNex.Services.SemanticKernel
                 MasterPromptKey = "Geed2",
                 Temperature = 0.9f,
                 PresencePenalty = 1.5f,
+                //GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = false
             });
             _pageData.Add("Giant2", new Display

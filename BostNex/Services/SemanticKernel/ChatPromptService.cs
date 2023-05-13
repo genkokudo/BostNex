@@ -17,7 +17,7 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="key"></param>
         /// <param name="options">設定</param>
         /// <returns></returns>
-        public Task<OpenAIChatHistory> GetPromptAsync(string key, List<DisplayOption>? options);
+        public OpenAIChatHistory GetPrompt(string key, List<DisplayOption>? options);
 
         /// <summary>
         /// そのチャットの設定項目を取得
@@ -33,7 +33,7 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="prompt"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public Task<OpenAIChatHistory> GetCustomChatAsync(string prompt, List<DisplayOption>? options);
+        public OpenAIChatHistory GetCustomChat(string prompt, List<DisplayOption>? options);
     }
 
     public class ChatPromptService : IChatPromptService
@@ -67,7 +67,7 @@ namespace BostNex.Services.SemanticKernel
             };
         }
 
-        public async Task<OpenAIChatHistory> GetPromptAsync(string key, List<DisplayOption>? options)
+        public OpenAIChatHistory GetPrompt(string key, List<DisplayOption>? options)
         {
             Chat.TryGetValue(key, out var prompt);
             if (string.IsNullOrWhiteSpace(prompt))
@@ -75,7 +75,7 @@ namespace BostNex.Services.SemanticKernel
                 return new OpenAIChatHistory();
             }
             // オプションを適用したチャット
-            return await GetCustomChatAsync(prompt, options);
+            return GetCustomChat(prompt, options);
         }
 
         public List<DisplayOption> GetOptions(string key)
@@ -96,7 +96,7 @@ namespace BostNex.Services.SemanticKernel
         // ・SubmitOption：プロンプト取得＆GetCustomChat
 
 
-        public async Task<OpenAIChatHistory> GetCustomChatAsync(string prompt, List<DisplayOption>? options)
+        public OpenAIChatHistory GetCustomChat(string prompt, List<DisplayOption>? options)
         {
             // TODO:Optionsを適用する（未実装）
             // https://zenn.dev/microsoft/articles/semantic-kernel-7
