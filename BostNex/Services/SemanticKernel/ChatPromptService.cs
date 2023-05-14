@@ -124,6 +124,19 @@ namespace BostNex.Services.SemanticKernel
         }
     }
 
+    // TODO: テンプレート
+    //    var prompt = """
+    //これはテンプレートです。
+    //{{$input}}
+
+    //{{$name}}
+    //""";
+    //    var templateEngine = new PromptTemplateEngine();
+    //    var context = kernel.CreateNewContext();
+    //    context.Variables.Update("にゅうりょく！");    // {{$input}}
+    //    context.Variables["name"] = "岩跳 銀兵";
+    //    var renderedPrompt = await templateEngine.RenderAsync(prompt, context);
+
     // TODO:ここもVariablesにする
     /// <summary>
     /// ユーザが入力する設定項目

@@ -21,7 +21,8 @@ namespace BostNex.Services.SemanticKernel
     public enum SkillCategory
     {
         Test,
-        DarkMagic
+        DarkMagic,
+        LightMagic
     }
 
     public enum DarkMagicFunction
@@ -52,6 +53,7 @@ namespace BostNex.Services.SemanticKernel
         public void RegisterAllSkill(IKernel kernel)
         {
             RegisterDarkMagicSkill(kernel);
+            kernel.ImportSkill(new LightMagic(kernel), skillName: SkillCategory.LightMagic.ToString());
         }
 
         private void RegisterDarkMagicSkill(IKernel kernel)
