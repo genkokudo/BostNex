@@ -224,8 +224,6 @@ namespace BostNex.Services.SemanticKernel
                 Introduction = "人間は獣人に服従すべき脆弱な種族だ。",
                 Placeholder = "ジードとお話する",
                 MasterPromptKey = "Geed2",
-                Temperature = 0.9f,
-                PresencePenalty = 1.5f,
                 //GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = false
             });
@@ -237,8 +235,6 @@ namespace BostNex.Services.SemanticKernel
                 Introduction = "巨人に支配された街で生き残ろう。",
                 Placeholder = "こいつ怪しいなあ",
                 MasterPromptKey = "Giant2",
-                Temperature = 0.9f,
-                PresencePenalty = 1.5f,
                 IsPublic = false
             });
 
@@ -304,7 +300,6 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         public string MasterPromptKey { get; set; } = "";
 
-        // TODO: 都度生成で良いと思うけどしんどい？CurrentPromptは持っておいて、更新があればUpdateOptionって言う風にした方が良い？
         /// <summary>
         /// 実際に画面で使用するプロンプト
         /// MasterPromptにOptionsを適用した物。
@@ -336,14 +331,27 @@ namespace BostNex.Services.SemanticKernel
         /// デフォルトは1。サンプリング温度は0～2の間で指定します。
         /// 0.8のような高い値は出力をよりランダムにし、0.2のような低い値は出力をより集中させて、決定論的にします。
         /// 1を超えると壊れる可能性があるというか、全く使い物にならない。
+        /// 
+        /// 高温 (例: 1.0): 創造的な回答を期待する
+        /// 低温 (例: 0.1): 焦点を絞った保守的な回答を受け取る
         /// </summary>
-        public float Temperature { get; set; } = 1.0f;
+        public float Temperature { get; set; } = 0.9f;
 
         /// <summary>
         /// デフォルトは0。-2.0から2.0の間の数値。
         /// 正の値は、新しいトークンがこれまでのテキストに出現したトークンを繰り返すとペナルティを与え、新しいトピックについて話す可能性を高めます。
         /// </summary>
-        public float PresencePenalty { get; set; } = 0f;
+        public float PresencePenalty { get; set; } = 0.8f;
+
+        /// <summary>
+        /// デフォルトは0。-2.0から2.0の間の数値。
+        /// 同じ行をそのまま繰り返す可能性が低くなります。
+        /// 
+        /// 0:繰り返しを受け入れる
+        /// 1:多様な反応の創造的な渦に飛び込む
+        /// やるなら1まで。それ以上は壊れる。
+        /// </summary>
+        public float FrequencyPenalty { get; set; } = 0.5f;
 
         /// <summary>
         /// 返答のトークン上限を設定

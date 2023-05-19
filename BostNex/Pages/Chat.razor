@@ -161,7 +161,7 @@ else if (_display == null)
     private void SubmitOption()
     {
         _isSubmittedOptions = true;
-        _chat.InitializeChat(_display!);
+        _chat.ApplyOption(_display!);
         StateHasChanged();
     }
 

@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.DeepDev;
+﻿using Microsoft.DeepDev;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
@@ -7,15 +6,23 @@ using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
 
 namespace BostNex.Services.SemanticKernel
 {
+    // チャットから関数は呼べないはず。やりたかったらそういう仕組みを自分で組み込むしかない。
     public interface IChatService
     {
         /// <summary>
         /// これまでのやり取りをリセットして最初からにする
         /// プロンプトがあれば再設定する、無ければそのまま
-        /// オプション入力完了時も呼ばれる
         /// </summary>
-        /// <param name="prompt">プロンプト</param>
+        /// <param name="prompt">画面情報</param>
         public void InitializeChat(Display prompts);
+
+        /// <summary>
+        /// オプションがあれば適用してチャット開始する（なくてもよい）
+        /// オプション無しのプロンプトの初期化か、
+        /// オプション入力完了時に呼ばれる
+        /// </summary>
+        /// <param name="prompts"></param>
+        public void ApplyOption(Display prompts);
 
         /// <summary>
         /// 主に開発用
@@ -104,6 +111,8 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         private readonly IChatPromptService _prompt;
 
+        private ChatRequestSettings _settings = null!;
+
         public ChatService(IOptions<ChatServiceOption> options, ISkillService semantic, IKernelService kernel, IChatPromptService prompt)
         {
             _semantic = semantic;
@@ -114,25 +123,36 @@ namespace BostNex.Services.SemanticKernel
         
         public void InitializeChat(Display display)
         {
-            // 入力画面出す前に_promptから取得し、入力完了時もここを実行する（始まるまでに2回呼んじゃう）
+            // 最初にGetOptionsを呼んで、オプションを取る。
             _currentDisplay = display;
-            
-            // プロンプトと初期チャットの設定
-            var prompt = _prompt.GetPrompt(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);
-            _currentDisplay.CurrentPrompt = prompt.Messages.Count > 0 ? prompt.Messages[0] : new ChatHistory.Message(ChatHistory.AuthorRoles.System, string.Empty);
-            _chatHistory = GetChatHistory(prompt);      // 初期チャット設定（無い場合もある）
+            var options = _prompt.GetOptions(display.MasterPromptKey);
+
+            if (options.Count == 0)
+            {
+                // オプションが無ければApplyOption（プロンプト取得＆GetCustomChat）して開始。
+                ApplyOption(display);
+            }
 
             // その他の初期化
             Tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel);
             _skipLogs = 0;
             _api = _kernel.GetChatKernel(display.GptModel).GetService<IChatCompletion>();
+            _settings = new ChatRequestSettings { Temperature = _currentDisplay.Temperature, TopP = 1, PresencePenalty = _currentDisplay.PresencePenalty, FrequencyPenalty = _currentDisplay.FrequencyPenalty, MaxTokens = 256 };    // いつもの設定
+        }
+
+        public async void ApplyOption(Display prompts)
+        {
+            // プロンプトと初期チャットの設定
+            var prompt = await _prompt.GetPromptAsync(_currentDisplay.MasterPromptKey, CurrentDisplay.Options);    // オプションを適用
+            _currentDisplay.CurrentPrompt = prompt.Messages.Count > 0 ? prompt.Messages[0] : new ChatHistory.Message(ChatHistory.AuthorRoles.System, string.Empty);
+            _chatHistory = GetChatHistory(prompt);      // 初期チャット設定（無い場合もある）
         }
 
         // 開発用
         // プロンプトだけ差し替える
-        public void InitializeChat(string prompts)
+        public async void InitializeChat(string prompts)
         {
-            var prompt = _prompt.GetCustomChat(prompts, CurrentDisplay.Options);
+            var prompt = await _prompt.GetCustomChatAsync(prompts, CurrentDisplay.Options);
             _currentDisplay.CurrentPrompt = prompt.Messages[0];
             _chatHistory = GetChatHistory(prompt);
         }
@@ -182,10 +202,8 @@ namespace BostNex.Services.SemanticKernel
                         allChat = GetCurrentChat();
                     }
 
-                    var settings = new ChatRequestSettings { Temperature = _currentDisplay.Temperature, TopP = 1, PresencePenalty = _currentDisplay.PresencePenalty, FrequencyPenalty = 0, MaxTokens = 256 };    // いつもの設定
-
                     // 送信
-                    response = _api.GenerateMessageStreamAsync(allChat, settings);
+                    response = _api.GenerateMessageStreamAsync(allChat, _settings);
                 }
                 catch(AIException ex)
                 {
