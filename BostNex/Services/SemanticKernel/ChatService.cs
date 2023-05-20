@@ -83,7 +83,7 @@ namespace BostNex.Services.SemanticKernel
         /// プロンプト含むチャットログ
         /// 件数制限でカットした分は含まない
         /// </summary>
-        public ChatHistory ChatLog => GetCurrentChat();
+        public ChatHistory ChatLog => CurrentDisplay.IsSemanticKernel ? null! : GetCurrentChat();
 
         private Display _currentDisplay = null!;
 
@@ -125,8 +125,13 @@ namespace BostNex.Services.SemanticKernel
         {
             // 最初にGetOptionsを呼んで、オプションを取る。
             _currentDisplay = display;
-            var options = _prompt.GetOptions(display.MasterPromptKey);
+            if (display.IsSemanticKernel)
+            {
+                // 関数呼び出し画面の場合はここまで。
+                return;
+            }
 
+            var options = _prompt.GetOptions(display.MasterPromptKey);
             if (options.Count == 0)
             {
                 // オプションが無ければApplyOption（プロンプト取得＆GetCustomChat）して開始。
@@ -136,7 +141,7 @@ namespace BostNex.Services.SemanticKernel
             // その他の初期化
             Tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel);
             _skipLogs = 0;
-            _api = _kernel.Kernel.GetService<IChatCompletion>(display.GptModel.ToString());     // TODO:おかしい。セマンティックでも呼ばれる
+            _api = _kernel.Kernel.GetService<IChatCompletion>(display.GptModel.ToString());
             _settings = new ChatRequestSettings { Temperature = _currentDisplay.Temperature, TopP = 1, PresencePenalty = _currentDisplay.PresencePenalty, FrequencyPenalty = _currentDisplay.FrequencyPenalty, MaxTokens = 256 };    // いつもの設定
         }
 
@@ -175,7 +180,7 @@ namespace BostNex.Services.SemanticKernel
             return chatHistory;
         }
 
-        public async Task<string> ExecuteSemanticKernelAsync(string functionName ,string input)
+        public async Task<string> ExecuteSemanticKernelAsync(string functionName ,string input) // TODO:_semanticサービスって、_kernelと統合で良さそう。
         {
             var result = await _semantic.Execute(functionName, input);
             return result;

@@ -59,10 +59,10 @@ else if (_display == null)
 @* セッションの表示 *@
 @{
     // 現在有効なチャットに含まれているか確認する
-    var currentChat = _chat.ChatLog.Messages.Where(x => x.AuthorRole == AuthorRoles.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
+    var currentChat = _display.IsSemanticKernel ? null! : _chat.ChatLog.Messages.Where(x => x.AuthorRole == AuthorRoles.Assistant).Select(x => x.Content).ToList();  // AIの返答のみで判定
     foreach (var log in backlogs)
     {
-        if (!log.IsDisposed && log.StreamingResponse == null)
+        if (!_display.IsSemanticKernel && !log.IsDisposed && log.StreamingResponse == null)
         {
             // 破棄判定
             log.IsDisposed = !currentChat.Contains(log.AiResponse);

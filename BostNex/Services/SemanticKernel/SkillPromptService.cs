@@ -1,6 +1,4 @@
 ﻿using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.SemanticFunctions;
-using NuGet.Protocol.Plugins;
 
 namespace BostNex.Services.SemanticKernel
 {
