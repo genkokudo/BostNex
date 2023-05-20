@@ -92,7 +92,7 @@ namespace BostNex.Services.SemanticKernel
 
             // 最初に登録されたやつがデフォルトになる
             // OpenAI
-            //_kernel.Config.AddOpenAIChatCompletionService("gpt-3.5-turbo", _options.ApiKey, serviceId: ModelType.OpenAIGpt35Turbo.ToString());
+            _kernel.Config.AddOpenAIChatCompletionService("gpt-3.5-turbo", _options.ApiKey, serviceId: ModelType.OpenAIGpt35Turbo.ToString());
             _kernel.Config.AddOpenAIChatCompletionService("gpt-4", _options.ApiKey, serviceId: ModelType.OpenAIGpt4.ToString());
             _kernel.Config.AddOpenAIChatCompletionService("gpt-4-0314", _options.ApiKey, serviceId: ModelType.OpenAIGpt40314.ToString());
 
@@ -123,7 +123,7 @@ namespace BostNex.Services.SemanticKernel
                 }
             }
 
-            //_kernel.Config.SetDefaultTextCompletionService(ModelType.OpenAIGpt35Turbo.ToString());  // 指定がない場合はOpenAIの3.5を使用する。
+            _kernel.Config.SetDefaultTextCompletionService(ModelType.OpenAIGpt35Turbo.ToString());  // 指定がない場合はOpenAIの3.5を使用する。
         }
 
         ///// <summary>
