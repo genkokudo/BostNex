@@ -291,6 +291,7 @@ namespace BostNex.Services.SemanticKernel
         public bool IsSemanticKernel => !string.IsNullOrWhiteSpace(SemanticFunctionName);
         /// <summary>SemanticKernelの関数名</summary>
         public string SemanticFunctionName { get; set; } = "";
+        public string SemanticSkillName { get; set; } = SkillCategory.DarkMagic.ToString();
 
         /// <summary>ユーザに入力させる項目</summary>
         public List<DisplayOption> Options { get; set; } = new();

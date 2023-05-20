@@ -201,7 +201,7 @@ else if (_display == null)
             // チャット表示を追加
             if (_display!.IsSemanticKernel)
             {
-                var response = await _chat.ExecuteSemanticKernelAsync(_display.SemanticFunctionName, input);
+                var response = await _chat.ExecuteSemanticKernelAsync(_display.SemanticSkillName, _display.SemanticFunctionName, input);
                 backlogs.Add(new ChatSession { Text = input, AiResponse = response });
             }
             else

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ChatCompletion;
+using Microsoft.SemanticKernel.Orchestration;
 
 namespace BostNex.Services.SemanticKernel
 {
@@ -64,7 +65,7 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="functionName"></param>
         /// <param name="input"></param>
         /// <returns></returns>
-        public Task<string> ExecuteSemanticKernelAsync(string functionName, string input);
+        public Task<string> ExecuteSemanticKernelAsync(string skillName, string functionName, string input);
 
         // BOTからの返答を登録
         public void AddAssistantMessage(string message);
@@ -101,11 +102,6 @@ namespace BostNex.Services.SemanticKernel
         private int _skipLogs = 0;
 
         /// <summary>
-        /// Semantic Kernel関数を呼び出す
-        /// </summary>
-        private readonly ISkillService _semantic;
-
-        /// <summary>
         /// オプションを取得
         /// オプションを適用したプロンプトを取得
         /// </summary>
@@ -113,9 +109,8 @@ namespace BostNex.Services.SemanticKernel
 
         private ChatRequestSettings _settings = null!;
 
-        public ChatService(IOptions<ChatServiceOption> options, ISkillService semantic, IKernelService kernel, IChatPromptService prompt)
+        public ChatService(IOptions<ChatServiceOption> options, IKernelService kernel, IChatPromptService prompt)
         {
-            _semantic = semantic;
             _options = options.Value;
             _kernel = kernel;
             _prompt = prompt;
@@ -180,10 +175,13 @@ namespace BostNex.Services.SemanticKernel
             return chatHistory;
         }
 
-        public async Task<string> ExecuteSemanticKernelAsync(string functionName ,string input) // TODO:_semanticサービスって、_kernelと統合で良さそう。
+        // 単独で関数を実行する。Kernelサービスに持って行っても良い。
+        public async Task<string> ExecuteSemanticKernelAsync(string skillName, string functionName, string input)
         {
-            var result = await _semantic.Execute(functionName, input);
-            return result;
+            var func = _kernel.Kernel.Func(skillName, functionName);
+            var variables = new ContextVariables(input);
+            var context = await _kernel.Kernel.RunAsync(variables, func);
+            return context.Result;
         }
 
         public IAsyncEnumerable<string> GetNextSessionStream(string input)
