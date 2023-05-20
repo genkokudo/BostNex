@@ -136,7 +136,7 @@ namespace BostNex.Services.SemanticKernel
             // その他の初期化
             Tokenizer = TokenizerBuilder.CreateByModelName(display.GptTokenModel);
             _skipLogs = 0;
-            _api = _kernel.GetChatKernel(display.GptModel).GetService<IChatCompletion>();
+            _api = _kernel.Kernel.GetService<IChatCompletion>(display.GptModel.ToString());     // TODO:おかしい。セマンティックでも呼ばれる
             _settings = new ChatRequestSettings { Temperature = _currentDisplay.Temperature, TopP = 1, PresencePenalty = _currentDisplay.PresencePenalty, FrequencyPenalty = _currentDisplay.FrequencyPenalty, MaxTokens = 256 };    // いつもの設定
         }
 

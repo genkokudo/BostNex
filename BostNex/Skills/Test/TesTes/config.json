@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "type": "completion",
+  "description": "A sample prompt template configuration",
+  "completion": {
+    "temperature": 0.7,
+    "top_p": 0.0,
+    "presence_penalty": 0.5,
+    "frequency_penalty": 0.5,
+    "max_tokens": 512,
+    "stop_sequences": [ ]
+  },
+  "default_services": [ "openai", "gpt-3", "another-service" ],
+  "input": {
+    "parameters": [
+      {
+        "name": "input",
+        "description": "This parameter contains the input text",
+        "defaultValue": "default text"
+      },
+      {
+        "name": "style",
+        "description": "This parameter specifies the desired style",
+        "defaultValue": "plain"
+      }
+    ]
+  }
+}
