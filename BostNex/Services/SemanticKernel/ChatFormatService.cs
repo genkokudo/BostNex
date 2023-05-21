@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using BostNex.Skills;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 
@@ -254,7 +255,21 @@ namespace BostNex.Services.SemanticKernel
                 Placeholder = "要約したい文章を入力",
                 Temperature = 0.2f,
                 IsPublic = false,
-                SemanticFunctionName = DarkMagicFunction.Summarize.ToString()
+                SemanticFunctionName = DarkMagicFunction.Summarize.ToString(),
+                SemanticSkillName = SemanticSkillCategory.DarkMagic.ToString()
+        });
+
+            _pageData.Add(LightMagicFunction.SayHello.ToString(), new Display
+            {
+                Address = LightMagicFunction.SayHello.ToString(),
+                Title = "挨拶",
+                Headline = "挨拶",
+                Introduction = "入力した名前に対して挨拶してくれます。",
+                Placeholder = "挨拶したい人の名前を入力",
+                Temperature = 0.2f,
+                IsPublic = false,
+                SemanticFunctionName = LightMagicFunction.SayHello.ToString(),
+                SemanticSkillName = NativeSkillCategory.LightMagic.ToString()
             });
         }
 
@@ -291,7 +306,7 @@ namespace BostNex.Services.SemanticKernel
         public bool IsSemanticKernel => !string.IsNullOrWhiteSpace(SemanticFunctionName);
         /// <summary>SemanticKernelの関数名</summary>
         public string SemanticFunctionName { get; set; } = "";
-        public string SemanticSkillName { get; set; } = SkillCategory.DarkMagic.ToString();
+        public string SemanticSkillName { get; set; } = SemanticSkillCategory.DarkMagic.ToString();
 
         /// <summary>ユーザに入力させる項目</summary>
         public List<DisplayOption> Options { get; set; } = new();

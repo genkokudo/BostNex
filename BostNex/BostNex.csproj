@@ -22,10 +22,6 @@
     <PackageReference Include="Toolbelt.Blazor.HotKeys2" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Skills\LightMagic\" />
-  </ItemGroup>
-
   <Import Project="..\BostNexShared\BostNexShared.projitems" Label="Shared" />
 
 </Project>

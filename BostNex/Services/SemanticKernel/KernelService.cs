@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Memory;
 
 namespace BostNex.Services.SemanticKernel
 {
@@ -78,7 +79,11 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         private void InitializeKernel()
         {
-            _kernel = Microsoft.SemanticKernel.Kernel.Builder.Build();
+            _kernel = Microsoft.SemanticKernel.Kernel.Builder.Configure(c =>
+            {
+                //c.AddAzureTextEmbeddingGenerationService("text-embedding-ada-002", azureEndpoint, apiKey);    // TODO:Azureは後で。
+                c.AddOpenAITextEmbeddingGenerationService("text-embedding-ada-002", _options.ApiKey);
+            }).WithMemoryStorage(new VolatileMemoryStore()).Build();
 
             // 最初に登録されたやつがデフォルトになる
             // OpenAI

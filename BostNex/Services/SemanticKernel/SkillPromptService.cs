@@ -1,4 +1,6 @@
-﻿using Microsoft.SemanticKernel;
+﻿using BostNex.Skills;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.CoreSkills;
 
 namespace BostNex.Services.SemanticKernel
 {
@@ -17,11 +19,17 @@ namespace BostNex.Services.SemanticKernel
         /// <param name="kernel"></param>
         public void RegisterAllSkill(IKernel kernel);
     }
-    public enum SkillCategory
+    public enum SemanticSkillCategory
     {
         Test,
         DarkMagic,
-        LightMagic
+    }
+    public enum NativeSkillCategory
+    {
+        LightMagic,
+
+        // 使う可能性があるプリセットスキル
+        TextMemory
     }
 
     public enum DarkMagicFunction
@@ -35,12 +43,18 @@ namespace BostNex.Services.SemanticKernel
         {
             // いっそのこと、Skillsフォルダ以下のディレクトリスキャンして入れたら良くない？
             // →Webだとダメかも…。
-            var skills = Enum.GetValues(typeof(SkillCategory))
-                .Cast<SkillCategory>()
+            var skills = Enum.GetValues(typeof(SemanticSkillCategory))
+                .Cast<SemanticSkillCategory>()
                 .Select(s => s.ToString())
                 .ToArray();
 
             var mySkill = kernel.ImportSemanticSkillFromDirectory("Skills", skills);
+
+            // ネイティブスキルも入れてみよう
+            kernel.ImportSkill(new LightMagic(), NativeSkillCategory.LightMagic.ToString());
+
+            // プリセットスキルも入れてみよう
+            kernel.ImportSkill(new TextMemorySkill(), NativeSkillCategory.TextMemory.ToString());
         }
 
     }
