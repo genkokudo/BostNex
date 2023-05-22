@@ -1,6 +1,7 @@
 ﻿using BostNex.Services.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
+using System.Collections.Generic;
 
 // https://zenn.dev/microsoft/articles/semantic-kernel-3
 // var skill = kernel.ImportSkill(new SampleNativeSkill(), skillName: SkillCategory.DarkMagic.ToString()); // こうやって登録して使う。
@@ -21,9 +22,8 @@ namespace BostNex.Skills
 
         private const string DefaultMonsterName = "Goblin";
 
-        // SKFunctionName属性で関数名を指定していないので、メソッド名の"SayHello"として登録される
-        [SKFunction("Greetings")]
-        [SKFunctionName("SayHello")]
+        [SKFunction("Greetings")]       // 題名（多分Planが参照する）
+        [SKFunctionName("SayHello")]    // メソッド名（私が呼び出すときに使う）
         [SKFunctionInput(DefaultValue = DefaultName, Description = "Your name.")]    // {{ $Input }}
         [SKFunctionContextParameter(DefaultValue = DefaultMessageTemplate, Description = "Create a minute to greet the person whose name you entered.", Name = MessageTemplateName)]  // {{ $MessageTemplate }} // 複数定義可
         public async Task<string> SayHelloAsync(string name, SKContext context)
@@ -33,10 +33,14 @@ namespace BostNex.Skills
             name = string.IsNullOrWhiteSpace(name) ? DefaultName : name;
             var messageTemplate = context.Variables.ContainsKey(MessageTemplateName) ? context[MessageTemplateName] : DefaultMessageTemplate;
 
-            //// test
-            //await CreateMonsterAsync(name, context);
-            //await GetMonsterRaceListAsync(context);
 
+            //// test
+            //// 新しいモンスター作成
+            //await CreateMonsterAsync(name, context);
+            //// 種類の一覧を取得
+            //await GetMonsterRaceListAsync(context);
+            //// モンスターを発生させる
+            //await AddMonsterAsync(name, context);
 
 
             // 何か加工して返す
@@ -59,8 +63,10 @@ namespace BostNex.Skills
             var saveFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Save");
             context.Variables.Update(name);
             context.Variables["collection"] = "world";
-            context.Variables["key"] = "monster_race";
-            var result = await saveFunc.InvokeAsync(context);
+            context.Variables["key"] = "monster_race";              // "monster_race"に上書きなんだよね。リストにしてJSONにしなきゃダメ。
+
+            // 保存
+            await saveFunc.InvokeAsync(context);
 
             context.Log.LogTrace("新たなモンスター'{0}'が創られました。", name);
         }
@@ -74,6 +80,25 @@ namespace BostNex.Skills
         {
             // デフォルト値の設定
             name = string.IsNullOrWhiteSpace(name) ? DefaultName : name;
+
+            // nameでモンスター検索
+            var recallFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Recall");
+            context.Variables.Update(name);
+            context.Variables["collection"] = "world";
+            context.Variables["key"] = "monster_race";
+            context.Variables["relevance"] = "0.5"; // 一致度。1だと完全一致
+            context.Variables["limit"] = "20";     // いくつまでデータを取るか？
+            var aaaa = await recallFunc.InvokeAsync(context);   // "world"の中から、name（"orc"など）に関する情報を20個まで取得。キー名は多分関係なし。
+
+            // 【考察】オークという個体を出すには？
+            // "collection"は"world"じゃなくて、"monster_race"みたいな感じにする。ここには"orc"というキーでカタカナで名前（と説明文？）を入れる。
+            // それとは別に、"monster_orc"という"collection"を作って、色んなkeyでオークに関する情報を追加していく。
+
+            // オリキャラとかもそうやって追加
+            // "collection"にキャラ名、"key"に情報を入れていく。
+            // キャラの持ち物とか、アイテムの効果などのリストデータはどう格納するの？JSONだとしても検索には向かなさそう。
+            // 「このキャラの口調リストはこのkeyで格納してます」みたいな前提で関数作るしかない？
+            // それとも"口調例：ああああ"、"口調例：いいいい"みたいな感じで適当なキーで入れれば大丈夫？こっちが正解な気がするが…。
 
             //// TODO:メモリに追加
             //var saveFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Save");
