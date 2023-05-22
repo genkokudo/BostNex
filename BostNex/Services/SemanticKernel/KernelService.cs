@@ -36,13 +36,6 @@ namespace BostNex.Services.SemanticKernel
     public class KernelService : IKernelService
     {
         /// <summary>
-        /// チャット用のカーネル
-        /// スキル無し
-        /// チャットではモデル指定できないので代わりに辞書にする
-        /// </summary>
-        private static readonly Dictionary<ModelType, IKernel> _chatKernels = new();
-
-        /// <summary>
         /// 単独処理用のカーネル
         /// スキル登録はこっち
         /// </summary>
@@ -81,7 +74,7 @@ namespace BostNex.Services.SemanticKernel
         {
             _kernel = Microsoft.SemanticKernel.Kernel.Builder.Configure(c =>
             {
-                //c.AddAzureTextEmbeddingGenerationService("text-embedding-ada-002", azureEndpoint, apiKey);    // TODO:Azureは後で。
+                //c.AddAzureTextEmbeddingGenerationService("text-embedding-ada-002", azureEndpoint, apiKey);    // TODO:Azureは後で。"xxxx-ada"をデプロイした。
                 c.AddOpenAITextEmbeddingGenerationService("text-embedding-ada-002", _options.ApiKey);
             }).WithMemoryStorage(new VolatileMemoryStore()).Build();
 
