@@ -271,6 +271,19 @@ namespace BostNex.Services.SemanticKernel
                 SemanticFunctionName = LightMagicFunction.SayHello.ToString(),
                 SemanticSkillName = NativeSkillCategory.LightMagic.ToString()
             });
+
+            _pageData.Add(GeedFunction.Test.ToString(), new Display
+            {
+                Address = GeedFunction.Test.ToString(),
+                Title = "ジード",
+                Headline = "ジードテスト",
+                Introduction = "ねー、どうしよっか",
+                Placeholder = "なにを入力するの？",
+                Temperature = 0.2f,
+                IsPublic = false,
+                SemanticFunctionName = GeedFunction.Test.ToString(),
+                SemanticSkillName = NativeSkillCategory.Geed.ToString()
+            });
         }
 
         public List<Display> GetKeys()

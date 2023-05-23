@@ -3,54 +3,55 @@ using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.SkillDefinition;
 
 // https://zenn.dev/microsoft/articles/semantic-kernel-3
-// var skill = kernel.ImportSkill(new LightMagicSkill(), skillName: SkillCategory.LightMagic.ToString()); // こうやって登録して使う。
+// var skill = kernel.ImportSkill(new GeedSkill(), skillName: SkillCategory.Geed.ToString()); // こうやって登録して使う。
 //var input = new ContextVariables("Your Name");
 //var context = await kernel.RunAsync(input, skill["SayHello"]);
+
+// 使い方を考える場合はここを参考に。
+// https://zenn.dev/microsoft/articles/semantic-kernel-8
 namespace BostNex.Skills
 {
-    public enum LightMagicFunction
+    public enum GeedFunction
     {
-        SayHello
+        Test
     }
 
-    public class LightMagicSkill
+    public class GeedSkill
     {
-        private const string DefaultName = "Ginpay Iwatobi";
+        private const string DefaultName = "Geed";
         private const string DefaultMessageTemplate = "Hello, {0}!!";
         private const string MessageTemplateName = "MessageTemplate";
 
-        private const string DefaultMonsterName = "Goblin";
-
+        // 初期化する
         [SKFunction("Greetings")]       // 題名（多分Planが参照する）
-        [SKFunctionName("SayHello")]    // メソッド名（私が呼び出すときに使う）
+        [SKFunctionName("Test")]    // メソッド名（私が呼び出すときに使う）
         [SKFunctionInput(DefaultValue = DefaultName, Description = "Your name.")]    // {{ $Input }}
         [SKFunctionContextParameter(DefaultValue = DefaultMessageTemplate, Description = "Create a minute to greet the person whose name you entered.", Name = MessageTemplateName)]  // {{ $MessageTemplate }} // 複数定義可
-        public async Task<string> SayHelloAsync(string name, SKContext context)
+        public async Task<string> TestAsync(string input, SKContext context)
         {
-            // 値が入ってなければ、デフォルト値を設定する
-            // 今のバージョンだと属性から取得してくれないらしい。愚かな。
-            name = string.IsNullOrWhiteSpace(name) ? DefaultName : name;
+            input = string.IsNullOrWhiteSpace(input) ? DefaultName : input;
             var messageTemplate = context.Variables.ContainsKey(MessageTemplateName) ? context[MessageTemplateName] : DefaultMessageTemplate;
 
+            // test：結局何が出来るの？
+            // ジードの設定をひたすらメモリに入れてみる。
 
-            //// test
             //// 新しいモンスター作成
-            //await CreateMonsterAsync(name, context);
+            //await CreateMonsterAsync(input, context);
             //// 種類の一覧を取得
             //await GetMonsterRaceListAsync(context);
             //// モンスターを発生させる
-            //await AddMonsterAsync(name, context);
+            //await AddMonsterAsync(input, context);
 
 
             // 何か加工して返す
-            context.Log.LogTrace("'{0}'に挨拶しました。", name);
-            return string.Format(messageTemplate, name);
+            context.Log.LogTrace("'{0}'に挨拶しました。", input);
+            return string.Format(messageTemplate, input);
         }
 
         // 新しい種族のモンスターを創造します。
         [SKFunction("Create Monster")]
         [SKFunctionName("CreateMonster")]
-        [SKFunctionInput(DefaultValue = DefaultMonsterName, Description = "Name of the monster's race.")]
+        [SKFunctionInput(DefaultValue = DefaultName, Description = "Name of the monster's race.")]
         //[SKFunctionContextParameter(DefaultValue = "HP:10", Description = "モンスターの標準ステータス", Name = "$MonsterStatus")]  // {{ $MonsterStatus }}
         public async Task CreateMonsterAsync(string name, SKContext context)
         {
@@ -59,6 +60,11 @@ namespace BostNex.Skills
 
             // メモリに追加
             // TODO:複数なので、Jsonにシリアライズすることになるはず。
+
+            // こういうことやってるけど、await kernel.Memory.SaveInformationAsync("Me", "私の生年月日は1985年5月30日です。", "info1");    と同じだよ。
+            // context.Memory.SaveInformationAsyncでもいいのかな？？
+            // await kernel.Memory.SearchAsync("Me", "Meについて何か質問文").FirstOrDefaultAsync(); ってやると、適合した回答が得られる。
+
             var saveFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Save");
             context.Variables.Update(name);
             context.Variables["collection"] = "world";
@@ -73,7 +79,7 @@ namespace BostNex.Skills
         // モンスターを創造して世界に加えます。
         [SKFunction("Add Monster")]
         [SKFunctionName("AddMonster")]
-        [SKFunctionInput(DefaultValue = DefaultMonsterName, Description = "Name of the monster's race.")]    // {{ $Input }}
+        [SKFunctionInput(DefaultValue = DefaultName, Description = "Name of the monster's race.")]    // {{ $Input }}
         //[SKFunctionContextParameter(DefaultValue = "ブリザードハウント", Description = "モンスターを出現させる地方とか？", Name = "Location")]
         public async Task AddMonsterAsync(string name, SKContext context)
         {

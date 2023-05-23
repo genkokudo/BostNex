@@ -74,7 +74,7 @@ namespace BostNex.Services.SemanticKernel
         {
             _kernel = Microsoft.SemanticKernel.Kernel.Builder.Configure(c =>
             {
-                //c.AddAzureTextEmbeddingGenerationService("text-embedding-ada-002", azureEndpoint, apiKey);    // TODO:Azureは後で。"xxxx-ada"をデプロイした。
+                //c.AddAzureTextEmbeddingGenerationService(_chatOptions.Models[4], azureEndpoint, apiKey);    // Azureはこっち。
                 c.AddOpenAITextEmbeddingGenerationService("text-embedding-ada-002", _options.ApiKey);
             }).WithMemoryStorage(new VolatileMemoryStore()).Build();
 

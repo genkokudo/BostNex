@@ -27,6 +27,7 @@ namespace BostNex.Services.SemanticKernel
     public enum NativeSkillCategory
     {
         LightMagic,
+        Geed,
 
         // 使う可能性があるプリセットスキル
         TextMemory
@@ -51,7 +52,8 @@ namespace BostNex.Services.SemanticKernel
             var mySkill = kernel.ImportSemanticSkillFromDirectory("Skills", skills);
 
             // ネイティブスキルも入れてみよう
-            kernel.ImportSkill(new LightMagic(), NativeSkillCategory.LightMagic.ToString());
+            kernel.ImportSkill(new LightMagicSkill(), NativeSkillCategory.LightMagic.ToString());
+            kernel.ImportSkill(new GeedSkill(), NativeSkillCategory.Geed.ToString());
 
             // プリセットスキルも入れてみよう
             kernel.ImportSkill(new TextMemorySkill(), NativeSkillCategory.TextMemory.ToString());
