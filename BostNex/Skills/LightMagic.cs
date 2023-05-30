@@ -13,141 +13,99 @@ namespace BostNex.Skills
         SayHello
     }
 
+    // TODO:まずこのメソッドを作っていくスキルを作ってみない？
     public class LightMagicSkill
     {
-        private const string DefaultName = "Ginpay Iwatobi";
-        private const string DefaultMessageTemplate = "Hello, {0}!!";
-        private const string MessageTemplateName = "MessageTemplate";
+        // 要約するメソッドの例
+        // 入力：入力した文章を要約するネイティブスキルを作成したい
+        // SKFunctionの引数：処理の名前（Descriptionを1～3個程度の単語で表題にして作成する）
+        // メソッド名：SKFunctionの引数をPascalCaseにして、Asyncを付けたもの
+        // SKFunctionNameの引数：メソッド名からAsyncを除いたもの
+        // SKFunctionInputの引数DefaultValue:入力が無かった場合の値
+        // SKFunctionInputの引数Description:メソッドの説明
 
-        private const string DefaultMonsterName = "Goblin";
+        // SKFunctionContextParameterは、その処理の実行に必要なパラメータの数だけ定義する
+        // SKFunctionContextParameterの引数DefaultValue:そのパラメータに入力が無かった場合の値
+        // SKFunctionContextParameterの引数Description:そのパラメータの説明
+        // SKFunctionContextParameterの引数Name:そのパラメータの名前
 
-        [SKFunction("Greetings")]       // 題名（多分Planが参照する）
-        [SKFunctionName("SayHello")]    // メソッド名（私が呼び出すときに使う）
-        [SKFunctionInput(DefaultValue = DefaultName, Description = "Your name.")]    // {{ $Input }}
-        [SKFunctionContextParameter(DefaultValue = DefaultMessageTemplate, Description = "Create a minute to greet the person whose name you entered.", Name = MessageTemplateName)]  // {{ $MessageTemplate }} // 複数定義可
-        public async Task<string> SayHelloAsync(string name, SKContext context)
+        private const string SummarizeInputDefaultValue = "何も入力されていません。";
+
+        private const string SummarizeTemplateDefaultValue = "Hello, {0}!!";
+        private const string SummarizeTemplateName = "Template";
+
+        [SKFunction("Summarize")]
+        [SKFunctionName("Summarize")]
+        [SKFunctionInput(DefaultValue = SummarizeInputDefaultValue, Description = "Name of the method you want to create.")]
+        [SKFunctionContextParameter(DefaultValue = SummarizeTemplateDefaultValue, Description = "Create a minute to greet the person whose name you entered.", Name = SummarizeTemplateName)]
+        public async Task<string> SummarizeAsync(string document, SKContext context)
         {
             // 値が入ってなければ、デフォルト値を設定する
-            // 今のバージョンだと属性から取得してくれないらしい。愚かな。
-            name = string.IsNullOrWhiteSpace(name) ? DefaultName : name;
-            var messageTemplate = context.Variables.ContainsKey(MessageTemplateName) ? context[MessageTemplateName] : DefaultMessageTemplate;
+            document = string.IsNullOrWhiteSpace(document) ? SummarizeTemplateDefaultValue : document;
+            var template = context.Variables.ContainsKey(SummarizeTemplateName) ? context[SummarizeTemplateName] : SummarizeTemplateDefaultValue;
 
+            // 何か処理を行う
+            var result = string.Format(template, document);
+            context.Log.LogTrace("{0}文字の文章を{1}文字に要約しました。", document.Length, result.Length);
 
-            //// test
-            //// 新しいモンスター作成
-            //await CreateMonsterAsync(name, context);
-            //// 種類の一覧を取得
-            //await GetMonsterRaceListAsync(context);
-            //// モンスターを発生させる
-            //await AddMonsterAsync(name, context);
-
-
-            // 何か加工して返す
-            context.Log.LogTrace("'{0}'に挨拶しました。", name);
-            return string.Format(messageTemplate, name);
+            // 結果を出力する
+            return result;
         }
 
-        // 新しい種族のモンスターを創造します。
-        [SKFunction("Create Monster")]
-        [SKFunctionName("CreateMonster")]
-        [SKFunctionInput(DefaultValue = DefaultMonsterName, Description = "Name of the monster's race.")]
-        //[SKFunctionContextParameter(DefaultValue = "HP:10", Description = "モンスターの標準ステータス", Name = "$MonsterStatus")]  // {{ $MonsterStatus }}
-        public async Task CreateMonsterAsync(string name, SKContext context)
+
+
+
+        // ChatGPTに作ってもらう関数サンプル //
+        // 現在の状況を入力すると、指定中の人物の行動を生成します。そして、その人物の台詞を出力します。
+        //[SKFunction("When the current situation is entered, the system generates the actions of the person being specified. It then outputs the person's dialogue.")]
+
+        private const string CurrentStatusDefaultValue = "何も異常がありません。";
+        private const string CharacterPersonality = "CharacterPersonality";
+        private const string CharacterPersonalityDefaultValue = "冷酷非情";
+        private const string CharacterStatus = "CharacterStatus";
+        private const string CharacterStatusDefaultValue = "健康";
+
+        [SKFunction("現在の状況を入力すると、指定中の人物の行動を生成します。そして、その人物の台詞を出力します。")]
+        [SKFunctionName("GetDialogue")]
+        [SKFunctionInput(DefaultValue = CurrentStatusDefaultValue, Description = "現在の状況")]
+        [SKFunctionContextParameter(DefaultValue = CharacterPersonalityDefaultValue, Description = "キャラクターの性格", Name = CharacterPersonality)]
+        [SKFunctionContextParameter(DefaultValue = CharacterStatusDefaultValue, Description = "キャラクターの状態", Name = CharacterStatus)]
+        public async Task<string> GetDialogueAsync(string currentStatus, SKContext context)
         {
-            // デフォルト値の設定
-            name = string.IsNullOrWhiteSpace(name) ? DefaultName : name;
+            // 値が入ってなければ、デフォルト値を設定する
+            var input = string.IsNullOrWhiteSpace(currentStatus) ? CurrentStatusDefaultValue : currentStatus;
+            var characterPersonality = context.Variables.ContainsKey(CharacterPersonality) ? context[SummarizeTemplateName] : CharacterPersonality;
+            var characterStatus = context.Variables.ContainsKey(CharacterStatus) ? context[SummarizeTemplateName] : CharacterStatus;
 
-            // メモリに追加
-            // TODO:複数なので、Jsonにシリアライズすることになるはず。
-            var saveFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Save");
-            context.Variables.Update(name);
-            context.Variables["collection"] = "world";
-            context.Variables["key"] = "monster_race";              // "monster_race"に上書きなんだよね。リストにしてJSONにしなきゃダメ。
+            // キャラクターの行動を作成し、パラメータに反映する。
+            var action = "キャラクターの行動（ダミー）";
+            context.Log.LogTrace("キャラクターの行動：{0}", action);
+            context.Variables["Action"] = action;
 
-            // 保存
-            await saveFunc.InvokeAsync(context);
+            // キャラクターの台詞を作成し、出力する。
+            var result = "キャラクターの台詞（ダミー）";
+            context.Log.LogTrace("キャラクターの台詞：{0}", result);
 
-            context.Log.LogTrace("新たなモンスター'{0}'が創られました。", name);
+            return result;
         }
 
-        // モンスターを創造して世界に加えます。
-        [SKFunction("Add Monster")]
-        [SKFunctionName("AddMonster")]
-        [SKFunctionInput(DefaultValue = DefaultMonsterName, Description = "Name of the monster's race.")]    // {{ $Input }}
-        //[SKFunctionContextParameter(DefaultValue = "ブリザードハウント", Description = "モンスターを出現させる地方とか？", Name = "Location")]
-        public async Task AddMonsterAsync(string name, SKContext context)
-        {
-            // デフォルト値の設定
-            name = string.IsNullOrWhiteSpace(name) ? DefaultName : name;
+        // これを作ってもらうのに必要な要素は何か？
+        // やりたいこと（これを入力）：現在の状況を入力すると、指定中の人物の行動を生成します。そして、その人物の台詞を出力します。
 
-            // nameでモンスター検索
-            var recallFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Recall");
-            context.Variables.Update(name);
-            context.Variables["collection"] = "world";
-            context.Variables["key"] = "monster_race";
-            context.Variables["relevance"] = "0.5"; // 一致度。1だと完全一致
-            context.Variables["limit"] = "20";     // いくつまでデータを取るか？
-            var aaaa = await recallFunc.InvokeAsync(context);   // "world"の中から、name（"orc"など）に関する情報を20個まで取得。キー名は多分関係なし。
-
-            // 【考察】オークという個体を出すには？
-            // "collection"は"world"じゃなくて、"monster_race"みたいな感じにする。ここには"orc"というキーでカタカナで名前（と説明文？）を入れる。
-            // それとは別に、"monster_orc"という"collection"を作って、色んなkeyでオークに関する情報を追加していく。
-
-            // オリキャラとかもそうやって追加
-            // "collection"にキャラ名、"key"に情報を入れていく。
-            // キャラの持ち物とか、アイテムの効果などのリストデータはどう格納するの？JSONだとしても検索には向かなさそう。
-            // 「このキャラの口調リストはこのkeyで格納してます」みたいな前提で関数作るしかない？
-            // それとも"口調例：ああああ"、"口調例：いいいい"みたいな感じで適当なキーで入れれば大丈夫？こっちが正解な気がするが…。
-
-            //// TODO:メモリに追加
-            //var saveFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Save");
-            //context.Variables.Update(name);
-            //context.Variables["collection"] = "world";
-            //context.Variables["key"] = $"{name}_count";
-            //await saveFunc.InvokeAsync(context);
-
-            context.Log.LogTrace("モンスター'{0}'が出現しました。", name);
-        }
-
-        // 現在存在するモンスターの種類の一覧を取得します
-        [SKFunction("Get Monster race List")]
-        [SKFunctionName("GetMonsterRaceList")]
-        //[SKFunctionInput(DefaultValue = DefaultMonsterName, Description = "Name of the monster's race.")]    // {{ $Input }}
-        //[SKFunctionContextParameter(DefaultValue = "ブリザードハウント", Description = "モンスターを出現させる地方とか？", Name = "Location")]
-        public async Task GetMonsterRaceListAsync(SKContext context)
-        {
-            // メモリから取得
-            var retrieveFunc = context.Func(NativeSkillCategory.TextMemory.ToString(), "Retrieve");
-            context.Variables["collection"] = "world";
-            context.Variables["key"] = "monster_race";
-            var result = await retrieveFunc.InvokeAsync(context);
-
-            context.Log.LogTrace("モンスターの種類の一覧を取得します。");
-        }
+        // ここから以下のように要素が出力される
+        // |要素|値|
+        // |----|----|
+        // |関数名|GetDialogue|
+        // |入力|現在の状況|
+        // |パラメータ入力[0]|キャラクターの性格|
+        // |パラメータ入力[1]|キャラクターの状態|
+        // |戻り値|キャラクターの台詞|
+        // |パラメータ出力[0]|キャラクターの行動|
 
 
 
 
-        // 現在存在するモンスターの個体の一覧
 
-        // 世界を作る
-        // モンスターを倒す
-        // キャラクターの設定とかもcollectionで分けてぶっこんでいけば良さそう。
-
-        // このどれかで実装できる。
-        //string MySkill(string input);
-        //Task<string> MySkill(string input);
-        //string MySkill(string input, SKContext context);
-        //Task<string> MySkill(string input, SKContext context);
-        //string MySkill(SKContext context);
-        //Task<string> MySkill(SKContext context);
-        //SKContext MySkill(SKContext context);
-        //void MySkill(string input, SKContext context);
-        //void MySkill(string input);
-        //void MySkill();
-        //string MySkill();
-        //Task<string> MySkill();
-        //Task MySkill();
 
     }
 }
