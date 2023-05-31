@@ -259,16 +259,16 @@ namespace BostNex.Services.SemanticKernel
                 SemanticSkillName = SemanticSkillCategory.DarkMagic.ToString()
         });
 
-            _pageData.Add(LightMagicFunction.SayHello.ToString(), new Display
+            _pageData.Add(LightMagicFunction.CreateNativeFunction.ToString(), new Display
             {
-                Address = LightMagicFunction.SayHello.ToString(),
-                Title = "挨拶",
-                Headline = "挨拶",
-                Introduction = "入力した名前に対して挨拶してくれます。",
-                Placeholder = "挨拶したい人の名前を入力",
+                Address = LightMagicFunction.CreateNativeFunction.ToString(),
+                Title = "関数の生成",
+                Headline = "関数の生成",
+                Introduction = "入力した目的にあったネイティブ関数のひな形を生成してくれます。",
+                Placeholder = "現在の状況を入力すると、指定中の人物の行動を生成します。そして、その人物の台詞を出力します。",
                 Temperature = 0.2f,
                 IsPublic = false,
-                SemanticFunctionName = LightMagicFunction.SayHello.ToString(),
+                SemanticFunctionName = LightMagicFunction.CreateNativeFunction.ToString(),
                 SemanticSkillName = NativeSkillCategory.LightMagic.ToString()
             });
 

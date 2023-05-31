@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "description": "作成したい関数の概要と、表で列挙された要素から、ネイティブ関数を生成します。",
+  "type": "completion",
+  "completion": {
+    "max_tokens": 1000,
+    "temperature": 0.0,
+    "top_p": 0.0,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0
+  },
+  "default_services": [ "Azure4" ]
+  //"default_services": [ "OpenAIGpt35Turbo" ]
+  //"default_services": [ "OpenAIGpt4" ]
+}

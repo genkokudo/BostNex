@@ -9,7 +9,8 @@ namespace BostNex.Services.SemanticKernel
     /// 使用する可能性のあるSkillを登録する
     /// 取り敢えずジャンル分けしておく
     /// 
-    /// ※現在の所、3.5のみ使用する。
+    /// 現在の所、3.5のみ使用する。
+    /// コード生成はAzureの4を使ってしまおう
     /// </summary>
     public interface ISkillPromptService
     {
@@ -23,6 +24,7 @@ namespace BostNex.Services.SemanticKernel
     {
         Test,
         DarkMagic,
+        SkillMaker,
     }
     public enum NativeSkillCategory
     {
@@ -38,17 +40,21 @@ namespace BostNex.Services.SemanticKernel
         Summarize
     }
 
+    public enum SkillMakerFunction
+    {
+        EnumeratingFunctionElements,
+        GenerateNativeFunction
+    }
+
     public class SkillPromptService : ISkillPromptService
     {
         public void RegisterAllSkill(IKernel kernel)
         {
-            // いっそのこと、Skillsフォルダ以下のディレクトリスキャンして入れたら良くない？
-            // →Webだとダメかも…。
+            // SemanticSkillCategoryに挙げたSkillsフォルダ以下のスキルを全てインポートする
             var skills = Enum.GetValues(typeof(SemanticSkillCategory))
                 .Cast<SemanticSkillCategory>()
                 .Select(s => s.ToString())
                 .ToArray();
-
             var mySkill = kernel.ImportSemanticSkillFromDirectory("Skills", skills);
 
             // ネイティブスキルも入れてみよう
