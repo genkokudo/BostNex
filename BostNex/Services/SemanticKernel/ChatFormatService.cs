@@ -225,7 +225,7 @@ namespace BostNex.Services.SemanticKernel
                 Introduction = "人間は獣人に服従すべき脆弱な種族だ。",
                 Placeholder = "ジードとお話する",
                 MasterPromptKey = "Geed2",
-                //GptModel = ModelType.OpenAIGpt40314,
+                GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = false
             });
             _pageData.Add("Giant2", new Display

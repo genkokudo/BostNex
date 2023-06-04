@@ -72,20 +72,18 @@ namespace BostNex.Services.SemanticKernel
         /// </summary>
         private void InitializeKernel()
         {
-            _kernel = Microsoft.SemanticKernel.Kernel.Builder.Configure(c =>
-            {
-                //c.AddAzureTextEmbeddingGenerationService(_chatOptions.Models[4], azureEndpoint, apiKey);    // Azureはこっち。
-                c.AddOpenAITextEmbeddingGenerationService("text-embedding-ada-002", _options.ApiKey);
-            }).WithMemoryStorage(new VolatileMemoryStore()).Build();
+            var azureModels = new ModelType[] { ModelType.Azure35, ModelType.Azure4, ModelType.Azure432k, ModelType.AzureCode };
 
-            // 最初に登録されたやつがデフォルトになる
-            // OpenAI
-            _kernel.Config.AddOpenAIChatCompletionService("gpt-3.5-turbo", _options.ApiKey, serviceId: ModelType.OpenAIGpt35Turbo.ToString());
-            _kernel.Config.AddOpenAIChatCompletionService("gpt-4", _options.ApiKey, serviceId: ModelType.OpenAIGpt4.ToString());
-            _kernel.Config.AddOpenAIChatCompletionService("gpt-4-0314", _options.ApiKey, serviceId: ModelType.OpenAIGpt40314.ToString());
+            var builder = Microsoft.SemanticKernel.Kernel.Builder
+                .WithOpenAITextEmbeddingGenerationService("text-embedding-ada-002", _options.ApiKey)//c.AddAzureTextEmbeddingGenerationService(_chatOptions.Models[4], azureEndpoint, apiKey);    // Azureはこっち。
+                .WithMemoryStorage(new VolatileMemoryStore())
+                // 最初に登録されたやつがデフォルトになる
+                // OpenAI
+                .WithOpenAIChatCompletionService("gpt-3.5-turbo", _options.ApiKey, serviceId: ModelType.OpenAIGpt35Turbo.ToString())
+                .WithOpenAIChatCompletionService("gpt-4", _options.ApiKey, serviceId: ModelType.OpenAIGpt4.ToString())
+                .WithOpenAIChatCompletionService("gpt-4-0314", _options.ApiKey, serviceId: ModelType.OpenAIGpt40314.ToString());
 
             // Azure
-            var azureModels = new ModelType[] { ModelType.Azure35, ModelType.Azure4, ModelType.Azure432k, ModelType.AzureCode };
             for (int i = 0; i < _chatOptions.Models.Length; i++)
             {
                 if (azureModels.Length < i)
@@ -93,7 +91,7 @@ namespace BostNex.Services.SemanticKernel
                     if (azureModels[i] == ModelType.AzureCode)
                     {
                         // Azure：テキスト補間用
-                        _kernel.Config.AddAzureTextCompletionService(
+                        builder = builder.WithAzureTextCompletionService(
                             _chatOptions.Models[i],
                             _options.AzureUri,
                             _options.AzureApiKey,  // new AzureCliCredential()を使っても良い
@@ -102,7 +100,7 @@ namespace BostNex.Services.SemanticKernel
                     else
                     {
                         // Azure：チャット用
-                        _kernel.Config.AddAzureChatCompletionService(       // なんか、このメソッドはAddAzureTextCompletionServiceも兼ねているっぽい
+                        builder = builder.WithAzureChatCompletionService(
                             _chatOptions.Models[i],
                             _options.AzureUri,
                             _options.AzureApiKey,  // new AzureCliCredential()を使っても良い
@@ -111,7 +109,9 @@ namespace BostNex.Services.SemanticKernel
                 }
             }
 
-            _kernel.Config.SetDefaultTextCompletionService(ModelType.OpenAIGpt35Turbo.ToString());  // 指定がない場合はOpenAIの3.5を使用する。
+            //_kernel.Config.SetDefaultTextCompletionService(ModelType.OpenAIGpt35Turbo.ToString());  // 指定がない場合はOpenAIの3.5を使用する。
+
+            _kernel = builder.Build();
         }
 
     }
