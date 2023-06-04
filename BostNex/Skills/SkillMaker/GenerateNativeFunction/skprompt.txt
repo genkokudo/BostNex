@@ -1,0 +1,73 @@
+# 命令書
+貴方はプログラマです。
+これからC#で以下の制約条件に従ったメソッドを作成してください。
+
+## 制約条件
+- public async Task<string>で作成すること。
+- メソッド名は末尾にAsyncを付けること。
+- 引数はstring1つとSKContext1つとする。SKContextの名前は"context"固定である。
+- 引数のstringの名前はSKFunctionInputのDescriptionからcamel caseで決定する。
+- 属性とその引数は以下の物を付けること。
+- SKFunctionContextParameter属性はパラメータ入力の数だけ付与する。パラメータ入力からSKFunctionContextParameter属性を作成する。
+
+## 属性とその引数
+- SKFunction
+    - Description -> メソッドの説明
+- SKFunctionName
+    - Name -> メソッド名からAsyncを除いたもの
+- SKFunctionInput
+    - DefaultValue -> string引数のデフォルト値
+    - Description -> string引数の説明
+- SKFunctionContextParameter
+    - Name -> 入力パラメータの名前
+    - DefaultValue -> 入力パラメータのデフォルト値
+    - Description -> 入力パラメータの説明
+
+# 入力
+関数の説明：現在の状況を入力すると、指定中の人物の行動を生成します。そして、その人物の台詞を出力します。
+|要素|値|
+|----|----|
+|関数名|GetDialogue|
+|引数|現在の状況|
+|パラメータ入力[0]|キャラクターの性格|
+|パラメータ入力[1]|キャラクターの状態|
+|戻り値|キャラクターの台詞|
+|パラメータ出力[0]|キャラクターの行動|
+
+# 出力
+```
+private const string CurrentStatusDefaultValue = "何も異常がありません。";
+private const string CharacterPersonality = "CharacterPersonality";
+private const string CharacterPersonalityDefaultValue = "冷酷非情";
+private const string CharacterStatus = "CharacterStatus";
+private const string CharacterStatusDefaultValue = "健康";
+
+[SKFunction("現在の状況を入力すると、指定中の人物の行動を生成します。そして、その人物の台詞を出力します。")]
+[SKFunctionName("GetDialogue")]
+[SKFunctionInput(DefaultValue = CurrentStatusDefaultValue, Description = "現在の状況")]
+[SKFunctionContextParameter(DefaultValue = CharacterPersonalityDefaultValue, Description = "キャラクターの性格", Name = CharacterPersonality)]
+[SKFunctionContextParameter(DefaultValue = CharacterStatusDefaultValue, Description = "キャラクターの状態", Name = CharacterStatus)]
+public async Task<string> GetDialogueAsync(string currentStatus, SKContext context)
+{
+    // 値が入ってなければ、デフォルト値を設定する
+    var input = string.IsNullOrWhiteSpace(currentStatus) ? CurrentStatusDefaultValue : currentStatus;
+    var characterPersonality = context.Variables.ContainsKey(CharacterPersonality) ? context[CharacterPersonality] : CharacterPersonalityDefaultValue;
+    var characterStatus = context.Variables.ContainsKey(CharacterStatus) ? context[CharacterStatus] : CharacterStatusDefaultValue;
+
+    // キャラクターの行動を作成し、パラメータに反映する。
+    var action = "キャラクターの行動（ダミー）";
+    context.Log.LogTrace("キャラクターの行動：{0}", action);
+    context.Variables["Action"] = action;
+
+    // キャラクターの台詞を作成し、出力する。
+    var result = "キャラクターの台詞（ダミー）";
+    context.Log.LogTrace("キャラクターの台詞：{0}", result);
+
+    return result;
+}
+```
+
+# 入力
+{{$input}}
+
+# 出力
