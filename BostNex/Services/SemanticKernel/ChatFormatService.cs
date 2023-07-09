@@ -152,7 +152,7 @@ namespace BostNex.Services.SemanticKernel
                 SubmitText = "発言する",
                 MasterPromptKey = "DonpenKarma",
                 IsPublic = true
-            });
+            }); //6月13日にリリースされた新モデル (gpt-3.5-turbo-0613とgpt-4-0613) で利用可能です。
             _pageData.Add("PrankDaemon", new Display
             {
                 Address = "PrankDaemon",
@@ -195,16 +195,6 @@ namespace BostNex.Services.SemanticKernel
                 MasterPromptKey = "Geed",
                 IsPublic = true
             });
-            _pageData.Add("Giant", new Display
-            {
-                Address = "Giant",
-                Title = "巨人♂",
-                Headline = "巨人♂",
-                Introduction = "巨人に支配された街で生き残ろう。\r\n怪しい男の名前は「オウガ」です。\r\n巨人は弱点がありますが、普通の方法ではなかなか勝てません。",
-                Placeholder = "こいつ怪しいなあ",
-                MasterPromptKey = "Giant",
-                IsPublic = true
-            });
             _pageData.Add("Villain", new Display
             {
                 Address = "Villain",
@@ -228,6 +218,17 @@ namespace BostNex.Services.SemanticKernel
                 GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = false
             });
+            _pageData.Add("Geed3", new Display
+            {
+                Address = "Geed3",
+                Title = "獣人3♂",
+                Headline = "獣人♂特別編3",
+                Introduction = "人間と獣人は手を取り合うべきだ。",
+                Placeholder = "グレフとお話する",
+                MasterPromptKey = "Geed3",
+                GptModel = ModelType.OpenAIGpt40314,
+                IsPublic = false
+            });
             _pageData.Add("Giant2", new Display
             {
                 Address = "Giant2",
@@ -236,6 +237,7 @@ namespace BostNex.Services.SemanticKernel
                 Introduction = "巨人に支配された街で生き残ろう。",
                 Placeholder = "こいつ怪しいなあ",
                 MasterPromptKey = "Giant2",
+                GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = false
             });
 
