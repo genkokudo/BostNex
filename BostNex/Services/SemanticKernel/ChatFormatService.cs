@@ -91,7 +91,7 @@ namespace BostNex.Services.SemanticKernel
                 Placeholder = "あなたの質問",
                 MasterPromptKey = "Aikata",
                 UseAzureOpenAI = true,
-                GptModel = ModelType.Azure4,
+                GptModel = ModelType.Azure35,
                 IsPublic = false,
                 MaxTokens = 2048
             });
