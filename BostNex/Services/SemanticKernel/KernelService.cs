@@ -86,7 +86,7 @@ namespace BostNex.Services.SemanticKernel
             // Azure
             for (int i = 0; i < _chatOptions.Models.Length; i++)
             {
-                if (azureModels.Length < i)
+                if (azureModels.Length > i)
                 {
                     if (azureModels[i] == ModelType.AzureCode)
                     {

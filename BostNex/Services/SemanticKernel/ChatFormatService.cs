@@ -82,6 +82,19 @@ namespace BostNex.Services.SemanticKernel
                 IsPublic = false,
                 MaxTokens = 2048
             });
+            _pageData.Add("Aikata", new Display
+            {
+                Address = "Aikata",
+                Title = "相方",
+                Headline = "Azure OpenAI Service:gpt-35-turbo",
+                Introduction = "会社用1。\n8K context, $0.002 / 1K tokens",
+                Placeholder = "あなたの質問",
+                MasterPromptKey = "Aikata",
+                UseAzureOpenAI = true,
+                GptModel = ModelType.Azure4,
+                IsPublic = false,
+                MaxTokens = 2048
+            });
             //_pageData.Add("AzureCode2", new Display
             //{
             //    Address = "AzureCode2",
