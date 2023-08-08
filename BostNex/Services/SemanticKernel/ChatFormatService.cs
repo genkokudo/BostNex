@@ -253,6 +253,17 @@ namespace BostNex.Services.SemanticKernel
                 GptModel = ModelType.OpenAIGpt40314,
                 IsPublic = false
             });
+            _pageData.Add("Giant3", new Display
+            {
+                Address = "Giant3",
+                Title = "巨人3♂",
+                Headline = "巨人♂特別編3",
+                Introduction = "巨人に支配された街で生き残ろう。",
+                Placeholder = "こいつ怪しいなあ",
+                MasterPromptKey = "Giant3",
+                GptModel = ModelType.OpenAIGpt40314,
+                IsPublic = false
+            });
 
             // 開発モードの場合
             if (!_options.IsLocalDevelopMode)
