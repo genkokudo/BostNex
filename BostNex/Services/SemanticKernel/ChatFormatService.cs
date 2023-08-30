@@ -146,7 +146,7 @@ namespace BostNex.Services.SemanticKernel
                 SubmitText = "喋ってみる",
                 MasterPromptKey = "Ojisan",
                 Options = new List<DisplayOption> { new DisplayOption() },   // 名前入力
-                IsPublic = true
+                IsPublic = false
             });
             _pageData.Add("Tsunko", new Display
             {
@@ -164,7 +164,7 @@ namespace BostNex.Services.SemanticKernel
                 Placeholder = "ここがあの魔王のHouseね",
                 SubmitText = "発言する",
                 MasterPromptKey = "DonpenKarma",
-                IsPublic = true
+                IsPublic = false
             }); //6月13日にリリースされた新モデル (gpt-3.5-turbo-0613とgpt-4-0613) で利用可能です。
             _pageData.Add("PrankDaemon", new Display
             {
@@ -175,7 +175,7 @@ namespace BostNex.Services.SemanticKernel
                 Placeholder = "勝負を挑もう！",
                 SubmitText = "闘う",
                 MasterPromptKey = "PrankDaemon",
-                IsPublic = true
+                IsPublic = false
             });
             _pageData.Add("FemaleOverLoad", new Display
             {
@@ -186,7 +186,7 @@ namespace BostNex.Services.SemanticKernel
                 Placeholder = "女魔王とお話する",
                 SubmitText = "発言する",
                 MasterPromptKey = "FemaleOverLoad",
-                IsPublic = true
+                IsPublic = false
             });
             _pageData.Add("Yanko", new Display
             {
@@ -196,7 +196,7 @@ namespace BostNex.Services.SemanticKernel
                 Introduction = "ヤ、ヤン子…",
                 Placeholder = "ヤン子とお話する",
                 MasterPromptKey = "Yanko",
-                IsPublic = true
+                IsPublic = false
             });
             _pageData.Add("Geed", new Display
             {
@@ -206,7 +206,7 @@ namespace BostNex.Services.SemanticKernel
                 Introduction = "人間は獣人に服従すべき脆弱な種族だ。\r\n名前は「ジード」です。\r\n種族は決まってないので、()を使ってト書きをするとその通りになってくれるはずです。\r\n喧嘩したり冒険したりしてください。",
                 Placeholder = "ジードとお話する",
                 MasterPromptKey = "Geed",
-                IsPublic = true
+                IsPublic = false
             });
             _pageData.Add("Villain", new Display
             {
@@ -218,7 +218,7 @@ namespace BostNex.Services.SemanticKernel
                 SubmitText = "闘う",
                 MasterPromptKey = "Villain",
                 //GptModel = ModelType.OpenAIGpt40314,
-                IsPublic = true
+                IsPublic = false
             });
             _pageData.Add("Geed2", new Display
             {
