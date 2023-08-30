@@ -153,7 +153,8 @@ namespace BostNex.Services.SemanticKernel
                 MasterPromptKey = "Tsunko",
                 Title = "ツン子",
                 Address = "Tsunko",
-                Headline = "ツン子とお話しよう！"
+                Headline = "ツン子とお話しよう！",
+                IsPublic = false
             });
             _pageData.Add("DonpenKarma", new Display
             {
